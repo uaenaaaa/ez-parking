@@ -8,23 +8,9 @@
 	let otherLayoutLabel: HTMLLabelElement;
 	let accessInfo: HTMLSelectElement;
 	let customAccessInfo: HTMLInputElement;
-	let rateOptions: NodeListOf<HTMLInputElement>;
-
 	let operatingDays: NodeListOf<HTMLInputElement>;
 
-	$: {
-		if (operatingDays) {
-			operatingDays.forEach((checkbox) => {
-				checkbox.addEventListener('change', function () {
-					const day = this.getAttribute('data-day');
-					const dayHours = document.getElementById(`${day.toLowerCase()}-hours`);
-					if (dayHours) {
-						dayHours.classList.toggle('hidden', !this.checked);
-					}
-				});
-			});
-		}
-	}
+	let rateOptions: NodeListOf<HTMLInputElement>;
 
 	$: {
 		if (rateOptions) {
@@ -34,6 +20,20 @@
 					const rateInput = document.getElementById(`${rate}-rate`);
 					if (rateInput) {
 						rateInput.classList.toggle('hidden', !this.checked);
+					}
+				});
+			});
+		}
+	}
+
+	$: {
+		if (operatingDays) {
+			operatingDays.forEach((checkbox) => {
+				checkbox.addEventListener('change', function () {
+					const day = this.getAttribute('data-day') ?? '';
+					const dayHours = document.getElementById(`${day.toLowerCase()}-hours`);
+					if (dayHours) {
+						dayHours.classList.toggle('hidden', !this.checked);
 					}
 				});
 			});
@@ -295,86 +295,45 @@
 		/>
 		<br /><br />
 
+		<script lang="ts">
+		</script>
+
 		<h3>Pricing Information</h3>
 
 		<div id="pricing">
-			<div class="rate-option">
-				<label for="hourlyEnable">Hourly Rate</label>
-				<input
-					type="checkbox"
-					id="hourlyEnable"
-					class="enable-rate"
-					data-rate="hourly"
-					bind:this={rateOptions}
-				/>
-				<div id="hourly-rate" class="rate-input hidden">
-					<label for="hourlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="hourlyRate"
-							name="hourlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
+			{#each ['hourly', 'daily', 'monthly'] as rate}
+				<div class="rate-option">
+					<label for="{rate}Enable">{rate.charAt(0).toUpperCase() + rate.slice(1)} Rate</label>
+					<input
+						type="checkbox"
+						id="{rate}Enable"
+						class="enable-rate"
+						data-rate={rate}
+						bind:group={rateOptions}
+					/>
+					<div id="{rate}-rate" class="rate-input hidden">
+						<label for="{rate}Rate">Rate:</label>
+						<div class="input-wrapper">
+							<span class="peso-sign">₱</span>
+							<input
+								type="number"
+								id="{rate}Rate"
+								name="{rate}Rate"
+								placeholder="Enter Rate"
+								min="0"
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="dailyEnable">Daily Rate</label>
-				<input
-					type="checkbox"
-					id="dailyEnable"
-					class="enable-rate"
-					data-rate="daily"
-					bind:this={rateOptions}
-				/>
-				<div id="daily-rate" class="rate-input hidden">
-					<label for="dailyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input type="number" id="dailyRate" name="dailyRate" placeholder="Enter Rate" min="0" />
-					</div>
-				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="monthlyEnable">Monthly Rate</label>
-				<input
-					type="checkbox"
-					id="monthlyEnable"
-					class="enable-rate"
-					data-rate="monthly"
-					bind:this={rateOptions}
-				/>
-				<div id="monthly-rate" class="rate-input hidden">
-					<label for="monthlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="monthlyRate"
-							name="monthlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
-					</div>
-				</div>
-			</div>
+			{/each}
 		</div>
 
-		<script>
-			// JavaScript to toggle rate input based on the checkbox
-			document.querySelectorAll('.enable-rate').forEach((checkbox) => {
-				checkbox.addEventListener('change', function () {
-					const rate = this.getAttribute('data-rate');
-					const rateInput = document.getElementById(`${rate}-rate`);
-					rateInput.classList.toggle('hidden', !this.checked);
-				});
-			});
-		</script>
+		<style>
+			.hidden {
+				display: none;
+			}
+			/* Add your other styles here */
+		</style>
 
 		<h3>Accepted Payment Methods</h3>
 
