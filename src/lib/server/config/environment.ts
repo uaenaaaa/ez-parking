@@ -70,7 +70,7 @@ export const config: Config = {
 					getByUUID: import.meta.env.VITE_API_SLOT_GET_ALL_SLOTS || '/get-all-slots',
 					getByVehicleType:
 						import.meta.env.VITE_API_SLOT_GET_BY_VEHICLE_TYPE || '/get-slots-by-vehicle-type',
-					getBySlotCode: import.meta.env.VITE_API_SLOT_GET_BY_SLOT_CODE || '/get-slots-by-slot-code'
+					getBySlotCode: import.meta.env.VITE_API_SLOT_GET_BY_SLOT_CODE || '/get-slot-by-slot-code'
 				}
 			}
 		}

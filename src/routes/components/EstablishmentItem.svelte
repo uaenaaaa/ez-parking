@@ -62,7 +62,7 @@
 		<button
 			class="directions-button"
 			onclick={() => {
-				goto('/establishment/' + establishment.uuid + '/slots');
+				goto('/establishment/' + establishment.uuid + '/slot');
 			}}>View</button
 		>
 	</div>

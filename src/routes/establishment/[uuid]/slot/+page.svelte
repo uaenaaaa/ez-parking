@@ -5,6 +5,7 @@
 
 	let info = data as ApiResponse;
 	let loading = $state(false);
+	console.log(info);
 </script>
 
 <svelte:head>
@@ -127,11 +128,15 @@
 						<p class="font-medium text-green-600">
 							₱{(slot.vehicle_type.base_rate * info.get.establishment.hourly_rate).toFixed(2)}/hr
 						</p>
+						<a
+							href="/establishment/{info.get.establishment.uuid}/slot/{slot.slot_code}"
+							class="mt-4 inline-flex w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+						>
+							Reserve Slot
+						</a>
 					{/if}
 					{#if slot.is_premium}
-						<span class="inline-block rounded bg-purple-100 px-2 py-1 text-xs text-purple-800"
-							>Premium</span
-						>
+						<span class="inline-block rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">Premium</span>
 					{/if}
 				</div>
 			</div>
