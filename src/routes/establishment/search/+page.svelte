@@ -3,15 +3,15 @@
 	import { debounce } from 'lodash-es';
 	import type { ActionData } from './$types.js';
 	import EstablishmentItem from '../../components/EstablishmentItem.svelte';
-	import type { EstablishmentInterface } from '$lib/models/establishment/establishment_query_search.js';
+	import type { Establishment } from '$lib/models/establishment/establishment.js';
 
 	let { form }: { form: ActionData } = $props();
 	let searchTerm = $state('');
 	let loading = $state(false);
 	let error = $state('');
-	let establishments = $state<EstablishmentInterface[]>([]);
-	let longitude: number = $state(0);
-	let latitude: number = $state(0);
+	let establishments = $state<Establishment[]>([]);
+	let longitude: number = $state(14.5995);
+	let latitude: number = $state(120.9842);
 
 	async function getIPBasedLocation() {
 		try {
@@ -23,7 +23,6 @@
 			};
 		} catch (error) {
 			// If all else fails, return the coordinates of Manila
-			console.error('IP Geolocation failed:', error);
 			return {
 				latitude: 14.5995,
 				longitude: 120.9842
@@ -32,7 +31,7 @@
 	}
 
 	const debouncedSearch = debounce(async () => {
-		if (searchTerm.length <= 2) return;
+		if (searchTerm.length <= 1) return;
 		loading = true;
 		try {
 			const formElement = document.querySelector('form');
@@ -46,7 +45,6 @@
 		return async ({ result }: { result: any }) => {
 			if (result.type === 'success') {
 				establishments = result.data.data.establishments || [];
-				console.log('Establishments updated:', establishments);
 			}
 		};
 	}

@@ -10,6 +10,7 @@ interface AuthEndpoints {
 
 interface EstablishmentEndpoints {
 	query: string;
+	info: string;
 }
 
 interface Config {
@@ -25,6 +26,14 @@ interface Config {
 			establishment: {
 				root: string;
 				endpoints: EstablishmentEndpoints;
+			};
+			slots: {
+				root: string;
+				endpoints: {
+					getByUUID: string;
+					getByVehicleType: string;
+					getBySlotCode: string;
+				};
 			};
 		};
 	};
@@ -51,7 +60,17 @@ export const config: Config = {
 			establishment: {
 				root: import.meta.env.VITE_API_ESTABLISHMENT_ROOT || '/establishment',
 				endpoints: {
-					query: import.meta.env.VITE_API_ESTABLISHMENT_QUERY || '/query'
+					query: import.meta.env.VITE_API_ESTABLISHMENT_QUERY || '/query',
+					info: import.meta.env.VITE_API_ESTABLISHMENT_QUERY_INFO || '/get-establishment-info'
+				}
+			},
+			slots: {
+				root: import.meta.env.VITE_API_SLOTS_ROOT || '/slots',
+				endpoints: {
+					getByUUID: import.meta.env.VITE_API_SLOT_GET_ALL_SLOTS || '/get-all-slots',
+					getByVehicleType:
+						import.meta.env.VITE_API_SLOT_GET_BY_VEHICLE_TYPE || '/get-slots-by-vehicle-type',
+					getBySlotCode: import.meta.env.VITE_API_SLOT_GET_BY_SLOT_CODE || '/get-slots-by-slot-code'
 				}
 			}
 		}

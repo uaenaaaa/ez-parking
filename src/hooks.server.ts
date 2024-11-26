@@ -10,14 +10,13 @@ function matchesPattern(path: string, pattern: string): boolean {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const PROTECTED_ENDPOINTS: string[] = ['/parking-manager/*'];
+	const PROTECTED_ENDPOINTS = ['/parking-manager/*', '/admin/*', '/user/*'];
 
 	const isProtected = PROTECTED_ENDPOINTS.some((pattern) =>
 		matchesPattern(event.url.pathname, pattern)
 	);
 
 	if (isProtected) {
-		console.log('Protected endpoint:', event.url.pathname);
 		try {
 			await verifyToken();
 			return resolve(event);

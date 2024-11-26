@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { EstablishmentInterface } from '$lib/models/establishment/establishment_query_search.js';
+	import type { Establishment } from '$lib/models/establishment/establishment.js';
 	import { goto } from '$app/navigation';
 
 	const {
 		establishment,
 		userLong,
 		userLat
-	}: { establishment: EstablishmentInterface; userLong: number; userLat: number } = $props();
+	}: { establishment: Establishment; userLong: number; userLat: number } = $props();
 
 	function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
 		const R = 6371;
@@ -31,10 +31,6 @@
 	);
 </script>
 
-<svelte:head>
-	<title>Visitor Search</title>
-</svelte:head>
-
 <div class="result-item">
 	<div class="result">
 		<h3>{establishment.name}</h3>
@@ -51,8 +47,8 @@
 	</div>
 	<div class="slot-info">
 		<p class="status">
-			Available: {establishment.slot_statistics.open_slots} /
-			{establishment.slot_statistics.total_slots} slots
+			Available: {establishment.slot_statistics!.open_slots} /
+			{establishment.slot_statistics!.total_slots} slots
 		</p>
 		<button
 			class="directions-button"
