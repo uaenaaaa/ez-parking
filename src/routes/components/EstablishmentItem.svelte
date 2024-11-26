@@ -31,6 +31,10 @@
 	);
 </script>
 
+<svelte:head>
+	<title>Visitor Search</title>
+</svelte:head>
+
 <div class="result-item">
 	<div class="result">
 		<h3>{establishment.name}</h3>
@@ -76,6 +80,7 @@
 		border-radius: 8px;
 		display: flex;
 		justify-content: space-between;
+		width: 100%;
 		align-items: center;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}

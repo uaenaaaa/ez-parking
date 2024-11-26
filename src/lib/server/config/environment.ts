@@ -9,7 +9,6 @@ interface AuthEndpoints {
 }
 
 interface EstablishmentEndpoints {
-	root: string;
 	query: string;
 }
 
@@ -52,7 +51,6 @@ export const config: Config = {
 			establishment: {
 				root: import.meta.env.VITE_API_ESTABLISHMENT_ROOT || '/establishment',
 				endpoints: {
-					root: import.meta.env.VITE_API_ESTABLISHMENT_ROOT || '/establishment',
 					query: import.meta.env.VITE_API_ESTABLISHMENT_QUERY || '/query'
 				}
 			}
