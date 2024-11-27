@@ -7,8 +7,16 @@ const agent = new https.Agent({
 });
 
 export async function verifyToken() {
-	const verifyTokenUrl = `${config.api.baseUrl}:${config.api.port}/${config.api.version}${config.api.endpoints.auth.endpoints.verifyToken}`;
+	const verifyTokenUrl = `${config.api.baseUrl}:${config.api.port}/${config.api.version}${config.api.endpoints.auth.root}${config.api.endpoints.auth.endpoints.verifyToken}`;
+	console.log(verifyTokenUrl);
 
-	const response = axios.get(verifyTokenUrl, { withCredentials: true, httpsAgent: agent });
-	return (await response).data;
+	const response = await axios.post(
+		verifyTokenUrl,
+		{},
+		{
+			withCredentials: true,
+			httpsAgent: agent
+		}
+	);
+	return response.data;
 }

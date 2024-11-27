@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	const peakParkingHoursData = {
 		labels: [
 			'12 AM',
@@ -182,7 +182,7 @@
 
 	let modalChartInstance;
 
-	function openModal(chartId) {
+	let  openModal = (chartId: string) => {
 		const modal = document.getElementById('modal');
 		const modalChart = document.getElementById('modalChart');
 		const ctx = modalChart.getContext('2d');
@@ -240,33 +240,33 @@
 	<h1>Parking Report System</h1>
 
 	<div class="report-container">
-		<div class="chart-container" onclick="openModal('peakParkingHoursChart')">
+		<div class="chart-container" onclick={openModal('peakParkingHoursChart')}>
 			<canvas id="peakParkingHoursChart"></canvas>
 		</div>
 
-		<div class="chart-container" onclick="openModal('mostCommonVehicleTypesChart')">
+		<div class="chart-container" onclick={openModal('mostCommonVehicleTypesChart')}>
 			<canvas id="mostCommonVehicleTypesChart"></canvas>
 		</div>
 	</div>
 
 	<div class="report-container">
-		<div class="chart-container" onclick="openModal('busiestDaysChart')">
+		<div class="chart-container" onclick={openModal('busiestDaysChart')}>
 			<canvas id="busiestDaysChart"></canvas>
 		</div>
 
-		<div class="chart-container" onclick="openModal('parkingStatisticsChart')">
+		<div class="chart-container" onclick={openModal('parkingStatisticsChart')}>
 			<canvas id="parkingStatisticsChart"></canvas>
 		</div>
 	</div>
 
 	<div id="modal" class="modal">
 		<div class="modal-content">
-			<span class="close" onclick="closeModal()">&times;</span>
+			<span class="close" onclick={closeModal}>&times;</span>
 			<canvas id="modalChart"></canvas>
 		</div>
 	</div>
 
-	<button class="button" onclick="window.location.href='ownerlp2.html';">Back to Home</button>
+	<a href="/parking-manager/dashboard" class="button">Back to Home</a>
 </main>
 
 <style>

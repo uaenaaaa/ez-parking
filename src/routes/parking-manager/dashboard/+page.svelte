@@ -1,54 +1,51 @@
 <script>
-	function toggleSidebar() {
-		const sidebar = document.getElementById('sidebar');
-		const mainContent = document.getElementById('main-content');
+    import { page } from '$app/stores';
 
-		sidebar.classList.toggle('open');
-		mainContent.classList.toggle('compressed');
-	}
+    let sidebarOpen = $state(false);
+
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+    }
 </script>
 
 <svelte:head>
-	<title>Owner Dashboard</title>
+    <title>Owner Dashboard</title>
 </svelte:head>
+
 <main>
-	<div class="navbar">
-		<div class="logo">
-			<img src="nearby_logo.png" alt="NearbySpot Logo" />
-		</div>
-	</div>
+    <div class="navbar">
+        <div class="logo">
+            <img src="./../logo.png" alt="NearbySpot Logo" />
+        </div>
+    </div>
 
-	<!-- Hamburger Menu Button -->
-	<button class="menu-btn" onclick={toggleSidebar}>☰</button>
+    <button class="menu-btn" onclick={toggleSidebar}>☰</button>
 
-	<!-- Sidebar -->
-	<div class="sidebar" id="sidebar">
-		<h2>Owner Dashboard</h2>
-		<ul>
-			<li><a href="Manage-Parking.html">Manage Parking</a></li>
-			<li><a href="set-sched.html">Set Schedule</a></li>
-			<li><a href="Manage-Cashiers.html">Manage Cashiers</a></li>
-			<li><a href="reports.html">View Reports</a></li>
-			<li><a href="acc-settings.html">Account Settings</a></li>
-			<li><a href="nearby.html">Log Out</a></li>
-		</ul>
-	</div>
-
-	<div class="main-content" id="main-content">
+    <div class="sidebar" class:open={sidebarOpen}>
+        <h2>Owner Dashboard</h2>
+        <ul>
+            <li><a href="Manage-Parking.html">Manage Parking</a></li>
+            <li><a href="set-sched.html">Set Schedule</a></li>
+            <li><a href="Manage-Cashiers.html">Manage Cashiers</a></li>
+            <li><a href="reports.html">View Reports</a></li>
+            <li><a href="acc-settings.html">Account Settings</a></li>
+            <li><a href="nearby.html">Log Out</a></li>
+        </ul>
+    </div>
+	<div class="main-content" id="main-content" class:compressed={sidebarOpen}>
 		<h1>Welcome, Parking Owner</h1>
 
 		<div class="dashboard-panels">
 			<div class="panel">
 				<h3>Manage Parking Lot</h3>
 				<p>Update parking details, capacity, pricing, and more.</p>
-				<button class="btn" onclick="location.href='Manage-Parking.html'">Manage Parking Lot</button
-				>
+				<a href="/parking-manager/manage-parking-lot" class="btn">Manage Parking Lot</a>
 			</div>
 
 			<div class="panel">
 				<h3>Set Schedule</h3>
 				<p>Adjust open/close hours and update availability.</p>
-				<button class="btn" onclick="location.href='set-sched.html'">Set Schedule</button>
+				<a href="/parking-manager/schedule" class="btn">Set Schedule</a>
 			</div>
 
 			<div class="panel">
@@ -73,7 +70,7 @@
 </main>
 
 <style>
-	body {
+	main {
 		margin: 0;
 		font-family: Arial, sans-serif;
 		color: #333;

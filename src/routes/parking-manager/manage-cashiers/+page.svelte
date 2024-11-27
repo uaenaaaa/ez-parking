@@ -40,7 +40,7 @@
 <main>
 	<div class="container">
 		<!-- Back Button -->
-		<button class="back-btn" onclick="window.location.href='ownerdashboard.html'">←</button>
+		<a href="/parking-manager/dashboard" class="back-btn">←</a>
 
 		<h2>Manage Cashiers</h2>
 
@@ -70,7 +70,7 @@
 		</form>
 
 		<!-- Add Cashier Button -->
-		<button type="button" class="btn" id="add-cashier-btn" onclick="addCashier()" disabled
+		<button type="button" class="btn" id="add-cashier-btn" onclick={addCashier} disabled
 			>Add Cashier</button
 		>
 

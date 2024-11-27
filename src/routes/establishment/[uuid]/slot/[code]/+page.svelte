@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import type { APISlotBaseResponse } from '$lib/models/slot/slot.js';
 	import type { PageData } from '../$types.js';
 	let { data }: { data: PageData } = $props();
+	let establishment_uuid = $page.params.uuid;
 
 	let slotInfo = data as unknown as APISlotBaseResponse;
 	let loading = $state(false);
@@ -61,11 +63,14 @@
 
 			{#if slotInfo.get.slot.status === 'open'}
 				<div class="mt-8 border-t pt-6">
-					<button
+					<a
+						href="/auth/login?next={encodeURIComponent(
+							`/user/book/${establishment_uuid}/${slotInfo.get.slot.slot_code}`
+						)}"
 						class="w-full rounded-md bg-green-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
 					>
-						Book This Slot
-					</button>
+						Book This Slot</a
+					>
 					<p class="mt-2 text-center text-sm text-gray-500">
 						This slot is currently available for booking
 					</p>

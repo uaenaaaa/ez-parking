@@ -35,6 +35,13 @@ interface Config {
 					getBySlotCode: string;
 				};
 			};
+			parkingManager: {
+				root: string;
+				endpoints: {
+					getEstablishmentInfo: string;
+					getAllSlots: string;
+				};
+			};
 		};
 	};
 }
@@ -46,7 +53,7 @@ export const config: Config = {
 		version: import.meta.env.VITE_API_VERSION || 'api/v1',
 		endpoints: {
 			auth: {
-				root: import.meta.env.VITE_API_AUTH_ROOT || '/api/v1/auth',
+				root: import.meta.env.VITE_API_AUTH_ROOT || '/auth',
 				endpoints: {
 					login: import.meta.env.VITE_API_AUTH_LOGIN || '/login',
 					createAccount: import.meta.env.VITE_API_AUTH_CREATE_ACCOUNT || '/create-new-account',
@@ -71,6 +78,15 @@ export const config: Config = {
 					getByVehicleType:
 						import.meta.env.VITE_API_SLOT_GET_BY_VEHICLE_TYPE || '/get-slots-by-vehicle-type',
 					getBySlotCode: import.meta.env.VITE_API_SLOT_GET_BY_SLOT_CODE || '/get-slot-by-slot-code'
+				}
+			},
+			parkingManager: {
+				root: import.meta.env.VITE_API_PARKING_MANAGER_ROOT || '/parking-manager',
+				endpoints: {
+					getEstablishmentInfo:
+						import.meta.env.VITE_API_PARKING_MANAGER_GET_ESTABLISHMENT_INFO ||
+						'/get-establishment-info',
+					getAllSlots: import.meta.env.VITE_API_PARKING_MANAGER_GET_ALL_SLOTS || '/get-all-slots'
 				}
 			}
 		}
