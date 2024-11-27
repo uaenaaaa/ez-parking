@@ -22,6 +22,6 @@ export default defineConfig(({ mode }) => {
 						}
 					}
 				}
-			: undefined // No `server` config in production
+			: undefined
 	};
 });
