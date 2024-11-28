@@ -5,7 +5,6 @@
 
 	let info = data as ApiResponse;
 	let loading = $state(false);
-	console.log(info);
 </script>
 
 <svelte:head>

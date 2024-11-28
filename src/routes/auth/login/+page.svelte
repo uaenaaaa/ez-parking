@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { fade } from 'svelte/transition';
 	import isEmailValid from '$lib/utils/function/email-validation.js';
-	import axios from 'axios';
+	import { goto } from '$app/navigation';
 
 	let emailInput: HTMLInputElement;
 	let continueButton: HTMLButtonElement;
@@ -14,6 +14,7 @@
 	let otpForm: HTMLFormElement;
 	let showOtpForm = $state(false);
 	let rememberMe = $state(false);
+	let nextRoute = $state('');
 
 	let email = $state('');
 
@@ -21,6 +22,9 @@
 	let timer = $state(300);
 
 	$effect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		nextRoute = urlParams.get('next') || '';
+		console.log('nextRoute', nextRoute);
 		document.cookie = `X-CSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 		document.cookie = `Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 		document.cookie = `csrf_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
@@ -64,7 +68,6 @@
 			otpForm.requestSubmit();
 		}
 	}
-
 </script>
 
 <main>
@@ -164,7 +167,18 @@
 						return async ({ result }) => {
 							console.log(result);
 							if (result.type === 'success') {
-								console.log('Logged in');
+								console.log('redirecting to', result);
+								const role: 'parking_manager' | 'user' | 'admin' = result.data!.role;
+								if (role === 'admin') {
+									goto('/admin/dashboard');
+								} else if (role === 'parking_manager') {
+									goto('/parking-manager/dashboard');
+								} else if (role === 'user') {
+									console.log	('user')
+									goto(nextRoute || '/user/dashboard');
+								}
+							} else if (result.type === 'error') {
+								errorMessage.textContent = result.error;
 							}
 						};
 					}}

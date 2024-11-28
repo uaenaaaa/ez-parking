@@ -64,6 +64,7 @@
 		"@types/lodash-es": "^4.17.12",
 		"@types/node-fetch": "^2.6.12",
 		"axios": "^1.7.7",
+		"html5-qrcode": "^2.3.8",
 		"lodash-es": "^4.17.21",
 		"node-fetch": "^3.3.2"
 	}

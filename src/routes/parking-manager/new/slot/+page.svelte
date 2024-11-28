@@ -22,7 +22,6 @@
 	const vehicleTypes: Response = data;
 
 	const types = vehicleTypes.vehicleTypes.vehicle_types;
-	console.log(vehicleTypes);
 
 	const slotFeatures = ['standard', 'covered', 'vip', 'disabled', 'ev_charging'] as const;
 	const slotStatus = ['open', 'reserved', 'occupied'] as const;

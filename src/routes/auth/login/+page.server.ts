@@ -1,9 +1,14 @@
 import type { Actions } from '@sveltejs/kit';
-import { login } from '$lib/server/auth/login.js';
 import { fail } from '@sveltejs/kit';
 import type { Cookies } from '@sveltejs/kit';
 import axios from 'axios';
 import https from 'https';
+import {
+	API_BASE_URL,
+	API_AUTH_ROOT,
+	API_AUTH_LOGIN,
+	API_AUTH_VERIFY_OTP
+} from '$env/static/private';
 
 const agent = new https.Agent({
 	rejectUnauthorized: false
@@ -13,21 +18,26 @@ export const actions: Actions = {
 	login: async ({ request }) => {
 		const data = await request.formData();
 		try {
-			const result = await login({
-				email: data.get('email') as string
-			});
-			return { status: 200, data: result };
+			const response = await axios.post(
+				`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_LOGIN}`,
+				{
+					email: data.get('email') as string
+				},
+				{ withCredentials: true, httpsAgent: agent }
+			);
+			return { status: 200, data: response.data };
 		} catch {
 			return fail(401, { success: false, message: 'Invalid credentials' });
 		}
 	},
+
 	otp: async ({ request, cookies }: { request: Request; cookies: Cookies }) => {
 		const data = await request.formData();
 		try {
 			const otpDigits = Array.from({ length: 6 }, (_, i) => (data.get(`otp-${i}`) as string) || '');
 
 			const response = await axios.patch(
-				'https://localhost:5000/api/v1/auth/verify-otp',
+				`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_VERIFY_OTP}`,
 				{
 					email: data.get('email'),
 					otp: otpDigits.join(''),
@@ -51,11 +61,8 @@ export const actions: Actions = {
 					});
 				});
 			}
-
-			return {
-				success: true,
-				data: response.data
-			};
+			const role: 'parking_manager' | 'user' | 'admin' = response.data.role;
+			return { role };
 		} catch (error) {
 			console.error('OTP verification failed:', error);
 			return fail(500, {

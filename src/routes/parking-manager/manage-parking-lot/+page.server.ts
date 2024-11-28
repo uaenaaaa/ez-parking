@@ -8,7 +8,6 @@ const agent = new https.Agent({
 
 export const load: PageLoad = async ({ cookies }) => {
 	try {
-		// Get JWT from cookies
 		const token = cookies.get('Authorization');
 		const xsrfToken = cookies.get('X-CSRF-TOKEN');
 
