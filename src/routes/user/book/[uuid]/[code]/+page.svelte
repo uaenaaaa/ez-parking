@@ -2,30 +2,63 @@
 	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
 
-	interface BookingData {
-		establishment: {
-			name: string;
-			address: string;
-			hourly_rate: number;
-		};
-		slot: {
-			slot_code: string;
-			floor_level: number;
-			vehicle_type: {
+	let { data }: { data: PageData } = $props();
+	let bookingInfo = data as unknown as {
+		code: string;
+		transaction: {
+			establishment_info: {
+				address: string;
+				closing_time: string;
+				contact_number: string;
+				created_at: string;
+				establishment_id: number;
+				hourly_rate: number;
+				is_24_hours: boolean;
+				latitude: number;
+				longitude: number;
 				name: string;
-				base_rate: number;
+				opening_time: string;
+				updated_at: string;
+				uuid: string;
+			};
+			slot_info: {
+				slot_info: {
+					created_at: string;
+					establishment_id: number;
+					floor_level: number;
+					is_active: boolean;
+					is_premium: boolean;
+					slot_code: string;
+					slot_features: string;
+					slot_id: number;
+					slot_multiplier: string;
+					slot_status: string;
+					updated_at: string;
+					vehicle_type_id: number;
+				};
+				vehicle_type_info: {
+					base_rate_multiplier: number;
+					code: string;
+					created_at: string;
+					description: string;
+					is_active: boolean;
+					name: string;
+					size_category: string;
+					updated_at: string;
+					vehicle_id: number;
+				};
 			};
 		};
-	}
-
-	let { data }: { data: PageData } = $props();
-	let bookingInfo: BookingData = data;
+	};
+	console.log(bookingInfo);
 
 	let duration = $state(1);
 	let agreed = $state(false);
 
 	let totalPrice = $derived(
-		duration * bookingInfo.establishment.hourly_rate * bookingInfo.slot.vehicle_type.base_rate
+		duration *
+			bookingInfo.transaction.establishment_info.hourly_rate *
+			bookingInfo.transaction.slot_info.vehicle_type_info.base_rate_multiplier
 	);
 </script>
 
@@ -40,17 +73,23 @@
 			<div class="grid gap-6 md:grid-cols-2">
 				<div>
 					<h2 class="text-lg font-semibold text-gray-800">Establishment Details</h2>
-					<p class="mt-2 text-gray-600">{bookingInfo.establishment.name}</p>
-					<p class="text-gray-600">{bookingInfo.establishment.address}</p>
+					<p class="mt-2 text-gray-600">{bookingInfo.transaction.establishment_info.name}</p>
+					<p class="text-gray-600">{bookingInfo.transaction.establishment_info.address}</p>
 					<p class="mt-2 text-sm text-gray-500">
-						Base Rate: ₱{bookingInfo.establishment.hourly_rate}/hour
+						Base Rate: ₱{bookingInfo.transaction.establishment_info.hourly_rate}/hour
 					</p>
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-gray-800">Slot Information</h2>
-					<p class="mt-2 text-gray-600">Slot Code: {bookingInfo.slot.slot_code}</p>
-					<p class="text-gray-600">Floor Level: {bookingInfo.slot.floor_level}</p>
-					<p class="text-gray-600">Vehicle Type: {bookingInfo.slot.vehicle_type.name}</p>
+					<p class="mt-2 text-gray-600">
+						Slot Code: {bookingInfo.transaction.slot_info.slot_info.slot_code}
+					</p>
+					<p class="text-gray-600">
+						Floor Level: {bookingInfo.transaction.slot_info.slot_info.floor_level}
+					</p>
+					<p class="text-gray-600">
+						Vehicle Type: {bookingInfo.transaction.slot_info.vehicle_type_info.name}
+					</p>
 				</div>
 			</div>
 		</div>
@@ -58,11 +97,13 @@
 		<form method="POST" class="rounded-lg bg-white p-6 shadow-sm" use:enhance>
 			<div class="space-y-6">
 				<div>
-					<label for="duration" class="block text-sm font-medium text-gray-700"> Parking Duration (hours) </label>
+					<label for="duration" class="block text-sm font-medium text-gray-700">
+						Parking Duration (hours)
+					</label>
 					<input
 						type="number"
 						min="1"
-                        id="duration"
+						id="duration"
 						max="24"
 						bind:value={duration}
 						class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
@@ -72,11 +113,11 @@
 				<div class="rounded-lg bg-gray-50 p-4">
 					<div class="flex justify-between">
 						<span class="text-gray-600">Base Rate:</span>
-						<span>₱{bookingInfo.establishment.hourly_rate}/hour</span>
+						<span>₱{bookingInfo.transaction.establishment_info.hourly_rate}/hour</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-gray-600">Vehicle Type Multiplier:</span>
-						<span>x{bookingInfo.slot.vehicle_type.base_rate}</span>
+						<span>x{bookingInfo.transaction.slot_info.vehicle_type_info.base_rate_multiplier}</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-gray-600">Duration:</span>
@@ -90,10 +131,9 @@
 					</div>
 				</div>
 
-				<!-- Terms and Conditions -->
 				<div class="flex items-start">
 					<input
-                        id="agreed"
+						id="agreed"
 						type="checkbox"
 						bind:checked={agreed}
 						class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"

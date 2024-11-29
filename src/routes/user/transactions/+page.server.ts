@@ -1,9 +1,9 @@
-import type { PageServerLoad } from './$types.js';
+import type { PageServerLoad } from './$types';
 import axios from 'axios';
 import {
 	API_BASE_URL,
 	API_TRANSACTION_ROOT,
-	API_TRANSACTION_GET_ESTABLISHMENT_INFO_SLOT_FORM
+	API_TRANSACTION_ALL_TRANSACTIONS
 } from '$env/static/private';
 import https from 'https';
 
@@ -11,28 +11,28 @@ const agent = new https.Agent({
 	rejectUnauthorized: false
 });
 
-export const load: PageServerLoad = async ({ params, cookies }) => {
+export const load: PageServerLoad = async ({ cookies }) => {
 	try {
 		const token = cookies.get('Authorization');
 		const xsrfToken = cookies.get('X-CSRF-TOKEN');
+		console.log(`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_ALL_TRANSACTIONS}`);
 		const response = await axios.get(
-			`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_GET_ESTABLISHMENT_INFO_SLOT_FORM}`,
+			`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_ALL_TRANSACTIONS}`,
 			{
-				params: {
-					establishment_uuid: params.uuid,
-					slot_code: params.code
-				},
 				headers: {
 					Authorization: `Bearer ${token}`,
 					'X-CSRF-TOKEN': xsrfToken
 				},
-				httpsAgent: agent,
 				withCredentials: true,
-				withXSRFToken: true
+				withXSRFToken: true,
+				httpsAgent: agent
 			}
 		);
+
+		console.log(response.data);
 		return response.data;
 	} catch (error) {
-		console.error('Failed to fetch transaction details:', error);
+		console.error('Failed to fetch transactions:', error);
+		throw new Error('Failed to fetch transactions');
 	}
 };

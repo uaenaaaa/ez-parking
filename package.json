@@ -66,6 +66,7 @@
 		"axios": "^1.7.7",
 		"html5-qrcode": "^2.3.8",
 		"lodash-es": "^4.17.21",
+		"mapbox-gl": "^3.8.0",
 		"node-fetch": "^3.3.2"
 	}
 }
