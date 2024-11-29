@@ -78,7 +78,7 @@
 	<header>
 		<nav class="navbar">
 			<div class="logo">
-				<a href="nearby.html"><img src="logo.png" alt="EZParking Logo" /></a>
+				<a href="/"><img src="logo.png" alt="EZParking Logo" /></a>
 			</div>
 		</nav>
 	</header>

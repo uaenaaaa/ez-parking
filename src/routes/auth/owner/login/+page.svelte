@@ -15,7 +15,7 @@
 
 <nav class="navbar">
 	<div class="logo">
-		<a href="nearby.html"><img src="logo.png" alt="NearbySpot Logo" /></a>
+		<a href="/"><img src="logo.png" alt="NearbySpot Logo" /></a>
 	</div>
 </nav>
 

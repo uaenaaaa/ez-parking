@@ -73,7 +73,7 @@
 <main>
 	<nav class="navbar">
 		<div class="logo">
-			<a href="nearby.html">
+			<a href="/">
 				<img src="./../logo.png" alt="NearbySpot Logo" />
 			</a>
 		</div>

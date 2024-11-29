@@ -29,7 +29,7 @@
             <li><a href="Manage-Cashiers.html">Manage Cashiers</a></li>
             <li><a href="reports.html">View Reports</a></li>
             <li><a href="acc-settings.html">Account Settings</a></li>
-            <li><a href="nearby.html">Log Out</a></li>
+            <li><a href="/">Log Out</a></li>
         </ul>
     </div>
 	<div class="main-content" id="main-content" class:compressed={sidebarOpen}>
