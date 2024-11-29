@@ -78,10 +78,18 @@
 										/>
 									</svg>
 								</div>
-								<div>
-									<p class="text-sm font-medium text-gray-900">Transaction ID</p>
+								<a
+									href="/user/transactions/{transaction.uuid}"
+									class="group flex flex-col transition-opacity hover:opacity-75"
+								>
+									<p class="text-sm font-medium text-gray-900 group-hover:text-indigo-600">
+										Transaction ID
+									</p>
 									<p class="text-xs text-gray-500">{transaction.uuid}</p>
-								</div>
+									<span class="text-xs text-indigo-600 opacity-0 group-hover:opacity-100"
+										>Vies details →</span
+									>
+								</a>
 							</div>
 							<div class="flex items-center space-x-2">
 								<span

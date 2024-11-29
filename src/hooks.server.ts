@@ -1,11 +1,8 @@
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import axios from 'axios';
-import https from 'https';
+import { httpsAgent } from '$lib/server/http-config';
 
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
 axios.defaults.withCredentials = true;
 
 type UserRole = 'user' | 'parking_manager' | 'admin';
@@ -61,7 +58,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				'X-CSRF-TOKEN': xsrfToken || ''
 			},
 			withCredentials: true,
-			httpsAgent: agent
+			httpsAgent
 		}
 	);
 

@@ -6,11 +6,7 @@ import {
 } from '$env/static/private';
 import type { ApiResponse } from '$lib/models/establishment/establishment.js';
 import axios from 'axios';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageServerLoad = async ({ params }) => {
 	try {
@@ -21,7 +17,7 @@ export const load: PageServerLoad = async ({ params }) => {
 				establishment_uuid: params.uuid
 			},
 			withCredentials: true,
-			httpsAgent: agent
+			httpsAgent
 		});
 
 		return {

@@ -2,17 +2,13 @@ import type { Actions } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 import type { Cookies } from '@sveltejs/kit';
 import axios from 'axios';
-import https from 'https';
 import {
 	API_BASE_URL,
 	API_AUTH_ROOT,
 	API_AUTH_LOGIN,
 	API_AUTH_VERIFY_OTP
 } from '$env/static/private';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const actions: Actions = {
 	login: async ({ request }) => {
@@ -23,7 +19,7 @@ export const actions: Actions = {
 				{
 					email: data.get('email') as string
 				},
-				{ withCredentials: true, httpsAgent: agent }
+				{ withCredentials: true, httpsAgent }
 			);
 			return { status: 200, data: response.data };
 		} catch {
@@ -43,7 +39,7 @@ export const actions: Actions = {
 					otp: otpDigits.join(''),
 					remember_me: data.get('remember') === 'on'
 				},
-				{ withCredentials: true, httpsAgent: agent }
+				{ withCredentials: true, httpsAgent }
 			);
 
 			const responseCookies = response.headers['set-cookie'];

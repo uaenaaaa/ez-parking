@@ -1,11 +1,7 @@
 import type { PageServerLoad } from './$types.js';
 import { API_SLOT_GET_BY_SLOT_CODE, API_BASE_URL, API_SLOTS_ROOT } from '$env/static/private';
 import axios from 'axios';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config.js';
 
 export const load: PageServerLoad = async ({ params }) => {
 	try {
@@ -17,7 +13,7 @@ export const load: PageServerLoad = async ({ params }) => {
 				establishment_uuid: params.uuid
 			},
 			withCredentials: true,
-			httpsAgent: agent
+			httpsAgent
 		});
 
 		return {

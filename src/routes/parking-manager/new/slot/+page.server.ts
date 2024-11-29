@@ -1,17 +1,13 @@
 import type { PageLoad } from './$types';
 import axios from 'axios';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageLoad = async () => {
 	try {
 		const response = await axios.get(
 			'https://localhost:5000/api/v1/vehicle-type/get-all-vehicle-types',
 			{
-				httpsAgent: agent
+				httpsAgent
 			}
 		);
 		console.log('response', response);

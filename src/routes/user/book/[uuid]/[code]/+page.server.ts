@@ -5,11 +5,7 @@ import {
 	API_TRANSACTION_ROOT,
 	API_TRANSACTION_GET_ESTABLISHMENT_INFO_SLOT_FORM
 } from '$env/static/private';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	try {
@@ -26,7 +22,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 					Authorization: `Bearer ${token}`,
 					'X-CSRF-TOKEN': xsrfToken
 				},
-				httpsAgent: agent,
+				httpsAgent,
 				withCredentials: true,
 				withXSRFToken: true
 			}

@@ -1,12 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { API_BASE_URL, API_AUTH_LOGOUT, API_AUTH_ROOT } from '$env/static/private';
 import axios from 'axios';
-import https from 'https';
 import { redirect } from '@sveltejs/kit';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageServerLoad = (async ({ cookies }) => {
 	const authToken = cookies.get('Authorization');
@@ -27,7 +23,7 @@ export const load: PageServerLoad = (async ({ cookies }) => {
 				'X-CSRF-TOKEN': xsrfToken
 			},
 			withCredentials: true,
-			httpsAgent: agent
+			httpsAgent
 		}
 	);
 

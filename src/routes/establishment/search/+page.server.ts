@@ -2,12 +2,8 @@ import type { Actions } from '@sveltejs/kit';
 import { fail } from '@sveltejs/kit';
 import { API_BASE_URL, API_ESTABLISHMENT_ROOT, API_ESTABLISHMENT_QUERY } from '$env/static/private';
 import axios from 'axios';
-import https from 'https';
 import type { Establishment } from '$lib/models/establishment/establishment.js';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const actions: Actions = {
 	default: async ({ request }) => {
@@ -25,7 +21,7 @@ export const actions: Actions = {
 					is_24_hours: data.get('is_24_hours') === 'true'
 				},
 				withCredentials: true,
-				httpsAgent: agent
+				httpsAgent
 			});
 
 			return { status: 200, data: response.data as Establishment };

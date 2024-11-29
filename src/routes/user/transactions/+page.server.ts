@@ -5,11 +5,7 @@ import {
 	API_TRANSACTION_ROOT,
 	API_TRANSACTION_ALL_TRANSACTIONS
 } from '$env/static/private';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	try {
@@ -25,7 +21,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 				},
 				withCredentials: true,
 				withXSRFToken: true,
-				httpsAgent: agent
+				httpsAgent
 			}
 		);
 

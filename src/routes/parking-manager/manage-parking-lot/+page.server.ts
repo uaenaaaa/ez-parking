@@ -1,10 +1,6 @@
 import type { PageLoad } from './$types';
 import axios from 'axios';
-import https from 'https';
-
-const agent = new https.Agent({
-	rejectUnauthorized: false
-});
+import { httpsAgent } from '$lib/server/http-config';
 
 export const load: PageLoad = async ({ cookies }) => {
 	try {
@@ -24,7 +20,7 @@ export const load: PageLoad = async ({ cookies }) => {
 				headers: {
 					Authorization: `Bearer ${token}`
 				},
-				httpsAgent: agent,
+				httpsAgent,
 				withCredentials: true,
 				withXSRFToken: xsrfToken
 			}
