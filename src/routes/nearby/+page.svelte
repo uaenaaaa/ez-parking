@@ -21,6 +21,9 @@
 				},
 				function (error) {
 					alert('Unable to retrieve your location. Please try again.');
+				},
+				{
+					enableHighAccuracy: true
 				}
 			);
 		} else {

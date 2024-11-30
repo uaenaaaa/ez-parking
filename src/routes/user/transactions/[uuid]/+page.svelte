@@ -1,9 +1,19 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { NavigationEstablishmentCoords } from '$lib/state/navigation_establishment_coords';
+	import calculateDistance from '$lib/utils/function/calculate-distance';
 
 	let { data }: { data: PageData } = $props();
 	let isModalOpen = $state(false);
+	let establishmentLatitude = $state(0);
+	let establishmentLongitude = $state(0);
+	let userLatitude = $state(0);
+	let userLongitude = $state(0);
+
+	NavigationEstablishmentCoords.subscribe((coords) => {
+		establishmentLatitude = coords.latitude;
+		establishmentLongitude = coords.longitude;
+	});
 
 	let transactionData = data.transaction as {
 		transaction_data: {
@@ -22,7 +32,7 @@
 				slot_status: string;
 			};
 			slot_id: number;
-			status: 'Reserved' | 'Active' | 'Completed' | 'Cancelled';
+			status: 'reserved' | 'active' | 'completed' | 'cancelled';
 			transaction_id: number;
 			updated_at: string;
 			uuid: string;
@@ -46,14 +56,27 @@
 		`https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}+(${encodeURIComponent(transactionData.transaction_data.establishment_info.name)})&t=&z=14&ie=UTF8&iwloc=B&output=embed`
 	);
 
-	if (transactionData.transaction_data.status === 'Reserved') {
+	if (transactionData.transaction_data.status === 'reserved') {
 		NavigationEstablishmentCoords.set({
 			latitude: transactionData.transaction_data.establishment_info.latitude,
 			longitude: transactionData.transaction_data.establishment_info.longitude
 		});
 	}
 
+	console.log(transactionData);
+
 	$effect(() => {
+		navigator.geolocation.getCurrentPosition((position) => {
+			userLatitude = position.coords.latitude;
+			userLongitude = position.coords.longitude;
+		},
+		(error) => {
+			console.error(error);
+		},
+		{
+			enableHighAccuracy: true,
+		}
+	);
 		return () => {
 			NavigationEstablishmentCoords.set({
 				latitude: 0,
@@ -89,11 +112,11 @@
 
 					<span
 						class="inline-flex rounded-full px-3 py-1 text-xs font-medium
-            {transactionData.transaction_data.status === 'Active'
+            {transactionData.transaction_data.status === 'active'
 							? 'bg-blue-100 text-blue-800'
-							: transactionData.transaction_data.status === 'Completed'
+							: transactionData.transaction_data.status === 'completed'
 								? 'bg-green-100 text-green-800'
-								: transactionData.transaction_data.status === 'Cancelled'
+								: transactionData.transaction_data.status === 'cancelled'
 									? 'bg-red-100 text-red-800'
 									: 'bg-yellow-100 text-yellow-800'}"
 					>
@@ -150,6 +173,55 @@
 							<dt class="text-sm text-gray-500">Contact Number</dt>
 							<dd class="text-sm font-medium text-gray-900">
 								{transactionData.transaction_data.establishment_info.contact_number}
+							</dd>
+						</div>
+						{#if transactionData.transaction_data.status === 'reserved'}
+							<div class="flex justify-between">
+								<dt class="text-sm text-gray-500">Distance</dt>
+								<dd class="text-sm font-medium text-gray-900">
+									Approximately
+									{calculateDistance(
+										establishmentLatitude,
+										establishmentLongitude,
+										userLatitude,
+										userLongitude
+									).toFixed(1)}{' '}
+									km away
+								</dd>
+							</div>
+						{/if}
+
+						<div class="flex justify-between">
+							<dt class="text-sm text-gray-500">Get Directions thru</dt>
+							<dd class="text-sm font-medium text-gray-900 gap-5 flex flex-row">
+								<a
+									href={`https://www.google.com/maps/dir/?api=1&destination=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="text-indigo-600 hover:underline"
+								>
+									Google Maps
+								</a>
+
+								<a
+									href={`https://www.waze.com/ul?ll=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}&navigate=yes`}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="text-indigo-600 hover:underline"
+								>
+									Waze
+								</a>
+
+								<a
+									class="text-indigo-600 hover:underline"
+									target="_blank"
+									rel="noopener noreferrer"
+									href={`/establishment/${transactionData.transaction_data.establishment_info.latitude}/${
+										transactionData.transaction_data.establishment_info.longitude
+									}/`}
+								>
+									Our Map
+								</a>
 							</dd>
 						</div>
 					</dl>

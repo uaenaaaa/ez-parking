@@ -61,6 +61,9 @@
 						latitude = data.latitude;
 						longitude = data.longitude;
 					});
+				},
+				{
+					enableHighAccuracy: true,
 				}
 			);
 		} else {
