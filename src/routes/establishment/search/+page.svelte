@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { debounce } from 'lodash-es';
 	import type { ActionData } from './$types.js';
-	import EstablishmentItem from '../../components/EstablishmentItem.svelte';
+	import EstablishmentItem from './EstablishmentItem.svelte';
 	import type { Establishment } from '$lib/models/establishment/establishment.js';
 
 	let { form }: { form: ActionData } = $props();

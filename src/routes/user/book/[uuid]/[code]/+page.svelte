@@ -60,6 +60,7 @@
 			bookingInfo.transaction.establishment_info.hourly_rate *
 			bookingInfo.transaction.slot_info.vehicle_type_info.base_rate_multiplier
 	);
+
 </script>
 
 <div class="min-h-screen bg-gray-50 p-4">
