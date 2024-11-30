@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+	let isModalOpen = $state(false);
 
 	let transactionData = data.transaction as {
 		transaction_data: {
@@ -29,10 +30,20 @@
 				size_category: string;
 				type_name: string;
 			};
+			establishment_info: {
+				address: string;
+				latitude: number;
+				longitude: number;
+				name: string;
+			};
 			vehicle_type_id: number;
 		};
 		qr_code?: string;
 	};
+	console.log(transactionData);
+	let mapUrl = $state(
+		`https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}+(${encodeURIComponent(transactionData.transaction_data.establishment_info.name)})&t=&z=14&ie=UTF8&iwloc=B&output=embed`
+	);
 </script>
 
 <div class="min-h-screen bg-gray-50 p-4">
@@ -83,21 +94,29 @@
 						<div class="flex justify-between">
 							<dt class="text-sm text-gray-500">Entry Time</dt>
 							<dd class="text-sm font-medium text-gray-900">
-								{new Date(transactionData.transaction_data.entry_time).toLocaleString()}
+								{#if transactionData.transaction_data.entry_time != 'Not Available'}
+									{new Date(transactionData.transaction_data.entry_time).toLocaleString()}
+								{:else}
+									Not Available
+								{/if}
 							</dd>
 						</div>
 						{#if transactionData.transaction_data.exit_time}
 							<div class="flex justify-between">
 								<dt class="text-sm text-gray-500">Exit Time</dt>
 								<dd class="text-sm font-medium text-gray-900">
-									{new Date(transactionData.transaction_data.exit_time).toLocaleString()}
+									{#if transactionData.transaction_data.exit_time != 'Not Available'}
+										{new Date(transactionData.transaction_data.exit_time).toLocaleString()}
+									{:else}
+										Not Available
+									{/if}
 								</dd>
 							</div>
 						{/if}
 						<div class="flex justify-between">
 							<dt class="text-sm text-gray-500">Amount Due</dt>
 							<dd class="text-sm font-medium text-gray-900">
-								₱{transactionData.transaction_data.amount_due}
+								₱{transactionData.transaction_data.amount_due ?? '0.00'}
 							</dd>
 						</div>
 					</dl>
@@ -170,11 +189,57 @@
 							src={`data:image/png;base64,${transactionData.qr_code}`}
 							alt="Transaction QR Code"
 							class="h-96 w-96"
+							onclick={() => (isModalOpen = true)}
 						/>
 						<p class="mt-2 text-sm text-gray-500">Show this QR code to the parking attendant</p>
 					</div>
 				</div>
 			{/if}
+
+			<div class="rounded-lg bg-white p-6 shadow-sm md:col-span-2">
+				<h2 class="text-lg font-medium text-gray-900">
+					{transactionData.transaction_data.establishment_info.name} Location
+				</h2>
+				<div class="aspect-square h-96 w-full overflow-hidden rounded-lg">
+					<iframe
+						frameborder="0"
+						marginheight="0"
+						marginwidth="0"
+						title={transactionData.transaction_data.establishment_info.name}
+						src={mapUrl}
+						class="h-full w-full"
+					></iframe>
+				</div>
+			</div>
 		</div>
 	</div>
+
+	{#if isModalOpen}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+			onclick={() => (isModalOpen = false)}
+			aria-roledescription="modal"
+		>
+			<div
+				class="relative max-h-[90vh] max-w-[90vw]"
+				onclick={(e) => {
+					e.stopPropagation();
+				}}
+			>
+				<button
+					class="absolute -top-10 right-0 text-white hover:text-gray-300"
+					onclick={() => (isModalOpen = false)}
+				>
+					Close
+				</button>
+				<img
+					src={`data:image/png;base64,${transactionData.qr_code}`}
+					alt="Transaction QR Code (Large)"
+					class="max-h-[80vh] max-w-[80vw] rounded-lg"
+				/>
+			</div>
+		</div>
+	{/if}
 </div>
