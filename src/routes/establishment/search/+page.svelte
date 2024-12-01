@@ -2,16 +2,16 @@
 	import { enhance } from '$app/forms';
 	import { debounce } from 'lodash-es';
 	import type { ActionData } from './$types.js';
-	import EstablishmentItem from '../../components/EstablishmentItem.svelte';
-	import type { EstablishmentInterface } from '$lib/models/establishment/establishment_query_search.js';
+	import EstablishmentItem from './EstablishmentItem.svelte';
+	import type { Establishment } from '$lib/models/establishment/establishment.js';
 
 	let { form }: { form: ActionData } = $props();
 	let searchTerm = $state('');
 	let loading = $state(false);
 	let error = $state('');
-	let establishments = $state<EstablishmentInterface[]>([]);
-	let longitude: number = $state(0);
-	let latitude: number = $state(0);
+	let establishments = $state<Establishment[]>([]);
+	let longitude: number = $state(14.5995);
+	let latitude: number = $state(120.9842);
 
 	async function getIPBasedLocation() {
 		try {
@@ -23,7 +23,6 @@
 			};
 		} catch (error) {
 			// If all else fails, return the coordinates of Manila
-			console.error('IP Geolocation failed:', error);
 			return {
 				latitude: 14.5995,
 				longitude: 120.9842
@@ -32,7 +31,7 @@
 	}
 
 	const debouncedSearch = debounce(async () => {
-		if (searchTerm.length <= 2) return;
+		if (searchTerm.length <= 1) return;
 		loading = true;
 		try {
 			const formElement = document.querySelector('form');
@@ -46,7 +45,6 @@
 		return async ({ result }: { result: any }) => {
 			if (result.type === 'success') {
 				establishments = result.data.data.establishments || [];
-				console.log('Establishments updated:', establishments);
 			}
 		};
 	}
@@ -63,6 +61,9 @@
 						latitude = data.latitude;
 						longitude = data.longitude;
 					});
+				},
+				{
+					enableHighAccuracy: true,
 				}
 			);
 		} else {
@@ -98,6 +99,36 @@
 			{#if searchTerm}
 				<h2>Parking establishment results for "{searchTerm}"</h2>
 			{:else}
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+					width="100"
+					height="100"
+					><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
+						id="SVGRepo_tracerCarrier"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					></g><g id="SVGRepo_iconCarrier">
+						<path
+							d="M3 12C3 4.5885 4.5885 3 12 3C19.4115 3 21 4.5885 21 12C21 19.4115 19.4115 21 12 21C4.5885 21 3 19.4115 3 12Z"
+							stroke="#323232"
+							stroke-width="2"
+						></path>
+						<path
+							d="M14 14L16 16"
+							stroke="#323232"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						></path>
+						<path
+							d="M15 11.5C15 13.433 13.433 15 11.5 15C9.567 15 8 13.433 8 11.5C8 9.567 9.567 8 11.5 8C13.433 8 15 9.567 15 11.5Z"
+							stroke="#323232"
+							stroke-width="2"
+						></path>
+					</g></svg
+				>
 				<p>Search for parking establishments</p>
 			{/if}
 
@@ -160,6 +191,9 @@
 		width: 35%;
 		background-color: #d9d9d9;
 		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 		padding: 15px;
 		box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
 	}

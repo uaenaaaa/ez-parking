@@ -21,6 +21,9 @@
 				},
 				function (error) {
 					alert('Unable to retrieve your location. Please try again.');
+				},
+				{
+					enableHighAccuracy: true
 				}
 			);
 		} else {
@@ -41,7 +44,7 @@
 
 	<nav class="navbar">
 		<div class="logo">
-			<a href="nearby.html"><img src="nearby_logo.png" alt="NearbySpot Logo" /></a>
+			<a href="/"><img src="nearby_logo.png" alt="NearbySpot Logo" /></a>
 		</div>
 		<div class="navbar-right">
 			<button class="text-button"
@@ -75,7 +78,7 @@
 					>
 				</form>
 
-				<!-- nearby.html search form -->
+				<!-- / search form -->
 
 				<p id="loginWarning" style="color: red; display: none;">
 					Please log in to use the search feature.
