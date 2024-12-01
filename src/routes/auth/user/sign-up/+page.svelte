@@ -1,10 +1,13 @@
+<script>
+	import { enhance } from "$app/forms";
+</script>
 <svelte:head>
 	<title>Sign Up</title>
 </svelte:head>
 <main>
 	<div class="registration-form">
 		<h2>Sign Up</h2>
-		<form id="signupForm">
+		<form id="signupForm" use:enhance method="post">
 			<!-- Name -->
 			<input type="text" id="name" name="name" placeholder="First Name" required />
 			<input type="text" id="name" name="name" placeholder="Last Name" required />
