@@ -1,66 +1,242 @@
 <script lang="ts">
-	let phoneInput: HTMLInputElement;
-	let nextButton: HTMLButtonElement;
-	let phoneNumber = '';
+	import { enhance } from '$app/forms';
+	import { fade } from 'svelte/transition';
+	import isEmailValid from '$lib/utils/function/email-validation.js';
+	import { goto } from '$app/navigation';
 
-	$: isActive = phoneNumber.trim().length > 0;
+	let emailInput: HTMLInputElement;
+	let continueButton: HTMLButtonElement;
+	let resendButton: HTMLButtonElement;
+	let otpInputs: HTMLInputElement[] = [];
+	let otpValues = $state(Array(6).fill(''));
+	let timerText: HTMLDivElement;
+	let errorMessage: HTMLDivElement;
+	let otpForm: HTMLFormElement;
+	let showOtpForm = $state(false);
+	let rememberMe = $state(false);
+	let nextRoute = $state('');
+
+	let email = $state('');
+
+	let loggingIn = $state(false);
+	let timer = $state(300);
+
+	$effect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		nextRoute = urlParams.get('next') || '';
+		console.log('nextRoute', nextRoute);
+		document.cookie = `X-CSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+		document.cookie = `Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+		document.cookie = `csrf_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+		document.cookie = `refresh_token_cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+		emailInput.focus();
+	});
+
+	function handleKeydown(index: number, event: KeyboardEvent) {
+		if (event.key === 'Backspace' && !otpValues[index] && index > 0) {
+			otpInputs[index - 1].focus();
+		}
+	}
+
+	function startTimer() {
+		timer = 300;
+		const interval = setInterval(() => {
+			if (timer > 0) {
+				timer--;
+				if (timerText) timerText.textContent = `Get new code in ${timer} seconds`;
+			} else {
+				clearInterval(interval);
+				if (timerText) timerText.textContent = '';
+				if (resendButton) resendButton.disabled = false;
+			}
+		}, 1000);
+	}
+
+	async function handleOtpInput(index: number, event: Event) {
+		const input = event.target as HTMLInputElement;
+		const value = input.value.replace(/\D/g, '');
+
+		otpValues[index] = value;
+		input.value = value;
+
+		if (value && index < otpInputs.length - 1) {
+			otpInputs[index + 1].focus();
+		}
+
+		const allFilled = otpValues.every((v) => v !== '');
+		if (allFilled) {
+			otpForm.requestSubmit();
+		}
+	}
 </script>
 
-<div class="video-background">
-	<video autoplay muted loop>
-		<source src="mapping1.mp4" type="video/mp4" />
-		Your browser does not support HTML5 video.
-	</video>
-</div>
+<main>
+	<nav class="navbar">
+		<div class="logo">
+			<a href="/">
+				<img src="./../../logo.png" alt="NearbySpot Logo" />
+			</a>
+		</div>
+	</nav>
 
-<nav class="navbar">
-	<div class="logo">
-		<a href="/"><img src="logo.png" alt="NearbySpot Logo" /></a>
+	<div class="container">
+		{#if !showOtpForm}
+			<div class="login-form" transition:fade>
+				<h2>Secured Login</h2>
+				<p>Enter your registered email address</p>
+				<form
+					method="POST"
+					action="?/login"
+					use:enhance={() => {
+						loggingIn = true;
+						localStorage.setItem('rememberMe', rememberMe.toString());
+						return async ({ result }) => {
+							if (result.type === 'success') {
+								showOtpForm = true;
+								startTimer();
+							}
+							loggingIn = false;
+						};
+					}}
+				>
+					<div class="input-group">
+						<input
+							type="email"
+							name="email"
+							placeholder="example@domain.com"
+							required
+							onkeyup={() => isEmailValid(email)}
+							bind:this={emailInput}
+							bind:value={email}
+						/>
+					</div>
+
+					<div class="checkbox-container">
+						<input type="checkbox" id="rememberMe" name="remember" bind:checked={rememberMe} />
+						<label for="rememberMe">Remember Me for 60 days</label>
+					</div>
+
+					<button type="submit" disabled={!isEmailValid(email) || loggingIn}> Continue </button>
+
+					<div class="or-divider">
+						<span>Or</span>
+					</div>
+
+					<div class="social-login">
+						<button id="googleButton">
+							<img
+								src="https://img.icons8.com/color/16/000000/google-logo.png"
+								class="social-icon"
+								alt="Google"
+							/>
+							Continue with Google
+						</button>
+
+						<button id="facebookButton">
+							<img
+								src="https://img.icons8.com/color/16/000000/facebook.png"
+								class="social-icon"
+								alt="Facebook"
+							/>
+							Continue with Facebook
+						</button>
+					</div>
+
+					<div class="social-login" style="margin-top: 15px;">
+						<button id="appleButton">
+							<img
+								src="https://img.icons8.com/ios-filled/16/000000/mac-os.png"
+								class="social-icon"
+								alt="Apple"
+							/>
+							Continue with Apple
+						</button>
+					</div>
+				</form>
+			</div>
+		{:else}
+			<div class="verification-form" transition:fade>
+				<div class="verification-text">
+					Enter the 6-digit code sent to <span class="example-number">{email}</span>
+				</div>
+
+				<form
+					method="post"
+					class="input-container"
+					use:enhance={() => {
+						return async ({ result }) => {
+							console.log(result);
+							if (result.type === 'success') {
+								console.log('redirecting to', result);
+								const role: 'parking_manager' | 'user' | 'admin' = result.data!.role;
+								if (role === 'admin') {
+									goto('/admin/dashboard');
+								} else if (role === 'parking_manager') {
+									goto('/parking-manager/dashboard');
+								} else if (role === 'user') {
+									console.log	('user')
+									goto(nextRoute || '/user/dashboard');
+								}
+							} else if (result.type === 'error') {
+								errorMessage.textContent = result.error;
+							}
+						};
+					}}
+					action="?/otp"
+					bind:this={otpForm}
+				>
+					<input type="hidden" name="email" bind:value={email} />
+					<input type="hidden" name="remember" bind:value={rememberMe} />
+					{#each Array(6) as _, i}
+						<input
+							type="text"
+							name="otp-{i}"
+							maxlength="1"
+							class="code-input"
+							oninput={(e) => handleOtpInput(i, e)}
+							onkeydown={(e) => handleKeydown(i, e)}
+							bind:this={otpInputs[i]}
+						/>
+					{/each}
+				</form>
+
+				<div class="timer" bind:this={timerText}>
+					Get new code in {timer} seconds
+				</div>
+
+				<button
+					class="resend-button"
+					bind:this={resendButton}
+					disabled={timer > 0}
+					onclick={startTimer}
+				>
+					Resend Code
+				</button>
+
+				<div class="error-message" bind:this={errorMessage}></div>
+			</div>
+		{/if}
 	</div>
-</nav>
-
-<div class="left-box">
-	<h1>Nearby Spot</h1>
-	<input
-		type="tel"
-		id="phone-input"
-		class="phone-input"
-		placeholder="Enter your Email"
-		bind:this={phoneInput}
-		bind:value={phoneNumber}
-	/>
-	<a href="/auth/owner/login" class="forgot-email">Forget Email?</a>
-	<button
-		id="next-button"
-		class="submit-button {isActive ? 'active' : ''}"
-		disabled={!isActive}
-		on:click={() => {
-			const contactInfo = encodeURIComponent(phoneNumber.trim());
-			window.location.href = `ownerverification.html?contact=${contactInfo}`;
-		}}
-		bind:this={nextButton}
-	>
-		Next
-	</button>
-	<div class="or-container">
-		<div class="divider"></div>
-		<div class="or-text">Or</div>
-		<div class="divider"></div>
-	</div>
-	<button class="signup-button">
-		<a href="/auth/owner/sign-up">Sign Up</a>
-	</button>
-</div>
-
-<div class="content"></div>
+</main>
 
 <style>
+	main {
+		font-family: Arial, sans-serif;
+		background-color: #f4f4f4;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+	}
+
 	.navbar {
 		position: fixed;
 		top: 0;
 		width: 100%;
 		height: 80px;
-		background: rgba(217, 217, 217, 0.8); /* Slight transparency */
+		background: #d9d9d9;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -72,142 +248,204 @@
 	.navbar .logo {
 		display: flex;
 		align-items: center;
-		margin-right: auto;
 	}
 
 	.navbar .logo img {
-		max-height: 110px;
+		height: 110px;
 		width: auto;
 	}
 
-	.video-background {
-		position: absolute;
-		top: 0;
-		left: 0;
+	.login-form {
+		background-color: white;
+		padding: 40px;
+		border-radius: 15px;
+		box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+		max-width: 500px;
 		width: 100%;
-		height: 100%;
-		overflow: hidden;
-		z-index: 0;
+		margin-top: 80px;
 	}
 
-	.video-background video {
-		min-width: 100%; /* Ensures video covers the background */
-		min-height: 100%;
-		width: auto;
-		height: auto;
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		filter: brightness(0.5); /* Reduce brightness to 50% */
-	}
-
-	.left-box {
-		width: 30%;
-		height: auto;
-		border: 3px solid #767184;
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-		color: #000;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 20px;
+	.login-form h2 {
 		text-align: center;
-		border-radius: 10px;
-		background-color: rgba(
-			255,
-			255,
-			255,
-			0.8
-		); /* Slightly transparent background for readability */
-		z-index: 1; /* Ensure box appears above the video */
+		margin-bottom: 15px;
+		font-size: 28px;
+		color: #333;
 	}
 
-	.left-box h1 {
-		font-size: 24px;
-		font-weight: bold;
-		margin-bottom: 20px;
-	}
-
-	.phone-input {
-		width: 80%;
-		padding: 10px;
-		border: 1px solid #767184;
-		border-radius: 5px;
+	.login-form p {
+		text-align: center;
 		font-size: 16px;
-		margin-bottom: 10px;
+		color: #666;
+		margin-bottom: 25px;
 	}
 
-	.forgot-email {
-		font-size: 14px;
-		color: #767184;
-		cursor: pointer;
-		text-decoration: none;
-		transition: color 0.3s ease;
-		margin-bottom: 10px;
-		align-self: flex-start;
-		margin-left: 40px;
-	}
-
-	.forgot-email:hover {
-		color: #555;
-	}
-
-	.submit-button {
-		width: 80%;
-		padding: 10px 0;
-		background-color: #767184;
-		color: #fff;
-		border: none;
-		border-radius: 5px;
-		font-size: 16px;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
-		margin-bottom: 10px;
-		opacity: 0.5;
-	}
-
-	.submit-button.active {
-		opacity: 1;
-		cursor: pointer;
-	}
-
-	.submit-button:hover {
-		background-color: #555;
-	}
-
-	.or-container {
+	.login-form .input-group {
 		display: flex;
 		align-items: center;
-		margin: 10px 0;
-	}
-
-	.divider {
-		flex-grow: 1;
-		height: 1px;
-		background-color: #767184;
-	}
-
-	.or-text {
-		margin: 0 10px;
-		font-size: 14px;
-		color: #767184;
-	}
-
-	.signup-button {
-		width: 80%;
-		padding: 10px 0;
-		background-color: #767184;
-		color: #fff;
-		border: none;
-		border-radius: 5px;
-		font-size: 16px;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
+		border: 1px solid #ccc;
+		border-radius: 8px;
+		overflow: hidden;
 		margin-bottom: 20px;
 	}
 
-	.signup-button:hover {
-		background-color: #555;
+	.login-form input[type='email'] {
+		width: 100%;
+		padding: 15px;
+		border: none;
+		border-radius: 0;
+		outline: none;
+		color: #000;
+		font-size: 16px;
+	}
+
+	.login-form button {
+		width: 100%;
+		padding: 15px;
+		border: none;
+		background-color: #767184;
+		color: white;
+		font-size: 18px;
+		border-radius: 8px;
+		cursor: pointer;
+		margin-top: 15px;
+	}
+
+	.login-form button:disabled {
+		background-color: #d9d9d9;
+		cursor: not-allowed;
+	}
+
+	.login-form button:hover:not(:disabled) {
+		background-color: #5c5a6c;
+	}
+
+	.login-form .checkbox-container {
+		display: flex;
+		align-items: center;
+		margin-bottom: 25px;
+	}
+
+	.login-form input[type='checkbox'] {
+		margin-right: 15px;
+	}
+
+	.login-form input[type='checkbox']:hover {
+		cursor: pointer;
+	}
+
+	.error-message {
+		color: red;
+		font-size: 16px;
+		text-align: center;
+		margin-bottom: 15px;
+	}
+
+	.social-login {
+		text-align: center;
+		margin-top: 15px;
+	}
+
+	.social-login button {
+		width: 100%;
+		padding: 15px;
+		margin-top: 15px;
+		background-color: #ffffff;
+		border: 1px solid #000000;
+		border-radius: 8px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #000;
+		font-size: 18px;
+		text-align: center;
+	}
+
+	.social-login button:hover {
+		background-color: #767184;
+		color: #ffffff;
+	}
+
+	.or-divider {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 25px 0;
+	}
+
+	.or-divider::before,
+	.or-divider::after {
+		content: '';
+		flex: 1;
+		border-bottom: 1px solid #ccc;
+		margin: 0 15px;
+	}
+
+	.or-divider span {
+		font-size: 16px;
+		color: #666;
+	}
+
+	.container {
+		text-align: center;
+		margin-top: 100px;
+		width: 100%;
+		display: grid;
+		place-items: center;
+	}
+
+	.verification-text {
+		font-size: 18px;
+		color: #333;
+		margin-bottom: 20px;
+	}
+
+	.example-number {
+		font-weight: bold;
+		color: #767184;
+	}
+
+	.input-container {
+		display: flex;
+		justify-content: center;
+		gap: 10px;
+		margin-bottom: 20px;
+	}
+
+	.input-container input {
+		width: 50px;
+		height: 50px;
+		text-align: center;
+		font-size: 24px;
+		border: 1px solid #ccc;
+		border-radius: 8px;
+		outline: none;
+	}
+
+	.input-container input:focus {
+		border-color: #767184;
+	}
+
+	.resend-button {
+		background: none;
+		border: none;
+		color: #767184;
+		font-size: 16px;
+		cursor: pointer;
+		margin-bottom: 10px;
+	}
+
+	.resend-button:hover {
+		text-decoration: underline;
+	}
+
+	.timer {
+		font-size: 16px;
+		color: #666;
+	}
+
+	.error-message {
+		color: red;
+		margin-top: 10px;
 	}
 </style>

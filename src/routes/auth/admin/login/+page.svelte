@@ -74,7 +74,7 @@
 	<nav class="navbar">
 		<div class="logo">
 			<a href="/">
-				<img src="./../logo.png" alt="NearbySpot Logo" />
+				<img src="./../../logo.png" alt="NearbySpot Logo" />
 			</a>
 		</div>
 	</nav>

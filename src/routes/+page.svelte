@@ -4,20 +4,20 @@
 
 <main class="min-h-screen bg-gray-50">
 	<div class="h-screen">
-		<nav class="top-0 z-10 w-full bg-gradient-to-b from-gray-900/50">
+		<nav class="top-0 z-10 w-full">
 			<div class="mx-auto max-w-7xl px-4 py-4">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center">
 						<img src="/logo.png" alt="EZ Parking Logo" class="h-16" />
 					</div>
 					<div class="flex items-center space-x-4">
-						<a href="/about" class="text-sm font-medium hover:text-gray-200">About Us</a>
-						<a href="/auth/login" class="text-sm font-medium hover:text-gray-200"
+						<a href="/about" class="text-sm font-medium">About Us</a>
+						<a href="/auth/user/login" class="text-sm font-medium"
 							>Login</a
 						>
 						<a
 							href="/auth/owner/login"
-							class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700"
+							class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 text-white"
 						>
 							For Parking Owners
 						</a>
@@ -26,7 +26,6 @@
 			</div>
 		</nav>
 
-		<!-- Hero Content -->
 		<div class="relative z-10 flex h-full items-center justify-center px-4 text-center">
 			<div class="max-w-3xl" transition:fade>
 				<h1 class="text-4xl font-bold tracking-tight sm:text-6xl">
@@ -51,7 +50,6 @@
 		</div>
 	</div>
 
-	<!-- Features Section -->
 	<div class="bg-white py-24 sm:py-32">
 		<div class="mx-auto max-w-7xl px-6 lg:px-8">
 			<div class="mx-auto max-w-2xl text-center">

@@ -46,7 +46,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const xsrfToken = event.cookies.get('X-CSRF-TOKEN');
 
 	if (!authToken) {
-		throw redirect(303, '/auth/login');
+		throw redirect(303, '/');
 	}
 
 	const result = await axios.post(
@@ -75,7 +75,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			case 'user':
 				throw redirect(303, '/user/dashboard');
 			default:
-				throw redirect(303, '/auth/login');
+				throw redirect(303, '/');
 		}
 	}
 

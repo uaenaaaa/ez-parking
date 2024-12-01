@@ -11,7 +11,7 @@ export const load: PageServerLoad = (async ({ cookies }) => {
 	const refreshXsrfToken = cookies.get('csrf_refresh_token');
 
 	if (!authToken || !xsrfToken || !refreshToken || !refreshXsrfToken) {
-		redirect(303, '/auth/login');
+		redirect(303, '/');
 	}
 
 	await axios.post(
@@ -32,5 +32,5 @@ export const load: PageServerLoad = (async ({ cookies }) => {
 	cookies.delete('refresh_token_cookie', { path: '/' });
 	cookies.delete('csrf_refresh_token', { path: '/' });
 
-	redirect(303, '/auth/login');
+	redirect(303, '/');
 }) satisfies PageServerLoad;

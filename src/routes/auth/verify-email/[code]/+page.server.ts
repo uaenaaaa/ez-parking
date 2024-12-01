@@ -10,5 +10,5 @@ export const load: PageServerLoad = async ({ params }) => {
 		{ verification_token: params.code },
 		{ httpsAgent }
 	);
-	redirect(303, '/auth/login');
+	redirect(303, '/');
 };
