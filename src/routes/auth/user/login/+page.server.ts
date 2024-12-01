@@ -22,8 +22,14 @@ export const actions: Actions = {
 				{ withCredentials: true, httpsAgent }
 			);
 			return { status: 200, data: response.data };
-		} catch {
-			return fail(401, { success: false, message: 'Invalid credentials' });
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				return fail(error.response?.status || 500, {
+					success: false,
+					message: error.response?.data?.message || 'An error occurred'
+				});
+			}
+			return fail(500, { success: false, message: 'An unexpected error occurred' });
 		}
 	},
 

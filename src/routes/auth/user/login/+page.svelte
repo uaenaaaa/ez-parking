@@ -11,6 +11,7 @@
 	let otpValues = $state(Array(6).fill(''));
 	let timerText: HTMLDivElement;
 	let errorMessage: HTMLDivElement;
+	let errorLoginMessage: HTMLDivElement;
 	let otpForm: HTMLFormElement;
 	let showOtpForm = $state(false);
 	let rememberMe = $state(false);
@@ -96,6 +97,11 @@
 							if (result.type === 'success') {
 								showOtpForm = true;
 								startTimer();
+							} else if (result.type === 'failure') {
+								if (errorLoginMessage) {
+									errorLoginMessage.textContent = result.data?.message || 'Login failed';
+									errorLoginMessage.classList.add('error-message', 'mt-4', 'text-center');
+								}
 							}
 							loggingIn = false;
 						};
@@ -155,6 +161,7 @@
 						</button>
 					</div>
 				</form>
+				<div bind:this={errorLoginMessage}></div>
 			</div>
 		{:else}
 			<div class="verification-form" transition:fade>
