@@ -77,12 +77,14 @@
 				<img src="./../../logo.png" alt="NearbySpot Logo" />
 			</a>
 		</div>
+
+		<a href="/auth/user/sign-up">Sign Up </a>
 	</nav>
 
 	<div class="container">
 		{#if !showOtpForm}
 			<div class="login-form" transition:fade>
-				<h2>Secured Login</h2>
+				<h2>Login</h2>
 				<p>Enter your registered email address</p>
 				<form
 					method="POST"
@@ -174,7 +176,7 @@
 								} else if (role === 'parking_manager') {
 									goto('/parking-manager/dashboard');
 								} else if (role === 'user') {
-									console.log	('user')
+									console.log('user');
 									goto(nextRoute || '/user/dashboard');
 								}
 							} else if (result.type === 'error') {

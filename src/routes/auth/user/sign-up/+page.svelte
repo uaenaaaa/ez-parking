@@ -1,21 +1,34 @@
-<script>
-	import { enhance } from "$app/forms";
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
+	let errorMessage: HTMLDivElement;
 </script>
+
 <svelte:head>
 	<title>Sign Up</title>
 </svelte:head>
 <main>
 	<div class="registration-form">
 		<h2>Sign Up</h2>
-		<form id="signupForm" use:enhance method="post">
-			<!-- Name -->
-			<input type="text" id="name" name="name" placeholder="First Name" required />
-			<input type="text" id="name" name="name" placeholder="Last Name" required />
+		<form
+			id="signupForm"
+			method="post"
+			use:enhance={() => {
+				return async ({ result }) => {
+					if (result.type === 'failure') {
+						errorMessage.innerText = result.data.message as string;
+					} else {
+						errorMessage.innerText = '';
+						goto('/auth/success');
+					}
+				};
+			}}
+		>
+			<input type="text" id="name" name="first-name" placeholder="First Name" required />
+			<input type="text" id="name" name="last-name" placeholder="Last Name" required />
 
-			<!-- Email -->
 			<input type="email" id="email" name="email" placeholder="Email Address" required />
 
-			<!-- Phone Number -->
 			<input
 				type="tel"
 				id="phoneNumber"
@@ -25,36 +38,10 @@
 				minlength="11"
 			/>
 
-			<!-- Password -->
-			<input
-				type="password"
-				id="password"
-				name="password"
-				placeholder="Password (min 8 characters)"
-				required
-				minlength="11"
-			/>
+			<div id="error-message" class="error-message" bind:this={errorMessage}></div>
 
-			<!-- Confirm Password -->
-			<input
-				type="password"
-				id="confirmPassword"
-				name="confirmPassword"
-				placeholder="Confirm Password"
-				required
-			/>
-
-			<!-- Remember Me Checkbox -->
-			<div class="checkbox-container">
-				<input type="checkbox" id="rememberMe" name="remember" />
-				<label for="rememberMe">Remember Me on this device</label>
-			</div>
-
-			<!-- Error Message Display -->
-			<div id="error-message" class="error-message"></div>
-
-			<!-- Continue Button -->
 			<button type="submit">Sign Up</button>
+			<a href="/auth/user/login">Login to my account instead</a>
 		</form>
 	</div>
 </main>
@@ -108,16 +95,6 @@
 
 	.registration-form button:hover {
 		background-color: #14576c;
-	}
-
-	.registration-form .checkbox-container {
-		display: flex;
-		align-items: center;
-		margin-bottom: 20px;
-	}
-
-	.registration-form input[type='checkbox'] {
-		margin-right: 10px;
 	}
 
 	.error-message {
