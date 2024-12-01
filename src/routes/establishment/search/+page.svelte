@@ -158,7 +158,6 @@
 <style>
 	main {
 		margin: 0;
-		font-family: Arial, sans-serif;
 		color: #000;
 		background-color: #767184;
 		width: 100%;

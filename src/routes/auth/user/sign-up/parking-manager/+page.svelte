@@ -517,7 +517,6 @@
 
 	main {
 		background-color: #767184;
-		font-family: Arial, sans-serif;
 		color: var(--text-color);
 		padding: 20px;
 	}

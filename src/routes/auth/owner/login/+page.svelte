@@ -66,7 +66,6 @@
 
         main {
             background-color: #ffffff;
-            font-family: Arial, sans-serif;
             height: 100vh;
             margin: 0;
             padding: 0;

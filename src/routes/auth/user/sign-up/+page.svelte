@@ -26,9 +26,7 @@
 		>
 			<input type="text" id="name" name="first-name" placeholder="First Name" required />
 			<input type="text" id="name" name="last-name" placeholder="Last Name" required />
-
 			<input type="email" id="email" name="email" placeholder="Email Address" required />
-
 			<input
 				type="tel"
 				id="phoneNumber"
@@ -37,9 +35,9 @@
 				required
 				minlength="11"
 			/>
-
+			<input type="text" id="nickname" name="nickname" placeholder="Nickname" required />
+			<input type="text" name="plate-number" id="plate-number" min="">
 			<div id="error-message" class="error-message" bind:this={errorMessage}></div>
-
 			<button type="submit">Sign Up</button>
 			<a href="/auth/user/login">Login to my account instead</a>
 		</form>
@@ -48,7 +46,6 @@
 
 <style>
 	main {
-		font-family: Arial, sans-serif;
 		background-color: #f4f4f4;
 		margin: 0;
 		padding: 0;

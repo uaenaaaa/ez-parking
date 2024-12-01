@@ -25,7 +25,6 @@
 
 <style>
 	main {
-		font-family: Arial, sans-serif;
 		background-color: #f4f4f4;
 		display: flex;
 		justify-content: center;
