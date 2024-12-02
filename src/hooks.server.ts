@@ -13,6 +13,8 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
 	'/user': ['user']
 };
 
+const verifyTokenUrl = 'https://localhost:5000/api/v1/auth/verify-token';
+
 function matchesPattern(path: string, pattern: string): boolean {
 	const normalizedPath = path.replace(/\/$/, '');
 	const regexPattern = pattern.replace(/\*/g, '.*').replace(/\//g, '\\/').replace(/\/$/, '');
@@ -21,7 +23,6 @@ function matchesPattern(path: string, pattern: string): boolean {
 }
 
 function getRoleFromPath(path: string): string | null {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	for (const [route, _] of Object.entries(ROLE_ROUTES)) {
 		if (matchesPattern(path, route)) {
 			return route;
@@ -30,9 +31,57 @@ function getRoleFromPath(path: string): string | null {
 	return null;
 }
 
+async function verifyAndGetRole(
+	authToken: string | undefined,
+	xsrfToken: string | undefined
+): Promise<UserRole | null> {
+	if (!authToken) return null;
+
+	try {
+		const result = await axios.post(
+			verifyTokenUrl,
+			{},
+			{
+				headers: {
+					Authorization: `Bearer ${authToken}`,
+					'X-CSRF-TOKEN': xsrfToken || ''
+				},
+				withCredentials: true,
+				httpsAgent
+			}
+		);
+		return result.data.role as UserRole;
+	} catch {
+		return null;
+	}
+}
+
+function getRedirectPath(role: UserRole): string {
+	switch (role) {
+		case 'admin':
+			return '/admin/dashboard';
+		case 'parking_manager':
+			return '/parking-manager/dashboard';
+		case 'user':
+			return '/user/dashboard';
+		default:
+			return '/';
+	}
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const PROTECTED_ENDPOINTS = ['/parking-manager', '/admin', '/user'];
-	const verifyTokenUrl = 'https://localhost:5000/api/v1/auth/verify-token';
+	const authToken = event.cookies.get('Authorization');
+	const xsrfToken = event.cookies.get('X-CSRF-TOKEN');
+
+	// Check if user is on login page
+	if (event.url.pathname.endsWith('/login')) {
+		const userRole = await verifyAndGetRole(authToken, xsrfToken);
+		if (userRole) {
+			throw redirect(303, getRedirectPath(userRole));
+		}
+		return resolve(event);
+	}
 
 	const isProtected = PROTECTED_ENDPOINTS.some((pattern) =>
 		matchesPattern(event.url.pathname, pattern)
@@ -42,41 +91,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	const authToken = event.cookies.get('Authorization');
-	const xsrfToken = event.cookies.get('X-CSRF-TOKEN');
-
 	if (!authToken) {
 		throw redirect(303, '/');
 	}
 
-	const result = await axios.post(
-		verifyTokenUrl,
-		{},
-		{
-			headers: {
-				Authorization: `Bearer ${authToken}`,
-				'X-CSRF-TOKEN': xsrfToken || ''
-			},
-			withCredentials: true,
-			httpsAgent
-		}
-	);
+	const userRole = await verifyAndGetRole(authToken, xsrfToken);
+	if (!userRole) {
+		throw redirect(303, '/');
+	}
 
-	const userRole = result.data.role as UserRole;
 	const currentPath = event.url.pathname;
 	const routeBase = getRoleFromPath(currentPath);
 
 	if (!routeBase || !ROLE_ROUTES[routeBase].includes(userRole)) {
-		switch (userRole) {
-			case 'admin':
-				throw redirect(303, '/admin/dashboard');
-			case 'parking_manager':
-				throw redirect(303, '/parking-manager/dashboard');
-			case 'user':
-				throw redirect(303, '/user/dashboard');
-			default:
-				throw redirect(303, '/');
-		}
+		throw redirect(303, getRedirectPath(userRole));
 	}
 
 	return resolve(event);

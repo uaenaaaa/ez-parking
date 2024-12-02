@@ -35,8 +35,8 @@
 				required
 				minlength="11"
 			/>
-			<input type="text" id="nickname" name="nickname" placeholder="Nickname" required />
-			<input type="text" name="plate-number" id="plate-number" min="">
+			<input type="text" id="nickname" name="nickname" placeholder="Nickname" />
+			<input type="text" name="plate-number" id="plate-number" placeholder="Plate number" required>
 			<div id="error-message" class="error-message" bind:this={errorMessage}></div>
 			<button type="submit">Sign Up</button>
 			<a href="/auth/user/login">Login to my account instead</a>
