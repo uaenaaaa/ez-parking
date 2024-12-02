@@ -11,6 +11,7 @@
 	let otpValues = $state(Array(6).fill(''));
 	let timerText: HTMLDivElement;
 	let errorMessage: HTMLDivElement;
+	let errorLoginMessage: HTMLDivElement;
 	let otpForm: HTMLFormElement;
 	let showOtpForm = $state(false);
 	let rememberMe = $state(false);
@@ -70,6 +71,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>User Login | EZ Parking</title>
+</svelte:head>
+
 <main>
 	<nav class="navbar">
 		<div class="logo">
@@ -77,12 +82,14 @@
 				<img src="./../../logo.png" alt="NearbySpot Logo" />
 			</a>
 		</div>
+
+		<a href="/auth/user/sign-up">Sign Up </a>
 	</nav>
 
 	<div class="container">
 		{#if !showOtpForm}
 			<div class="login-form" transition:fade>
-				<h2>Secured Login</h2>
+				<h2>Login</h2>
 				<p>Enter your registered email address</p>
 				<form
 					method="POST"
@@ -94,6 +101,11 @@
 							if (result.type === 'success') {
 								showOtpForm = true;
 								startTimer();
+							} else if (result.type === 'failure') {
+								if (errorLoginMessage) {
+									errorLoginMessage.textContent = result.data?.message || 'Login failed';
+									errorLoginMessage.classList.add('error-message', 'mt-4', 'text-center');
+								}
 							}
 							loggingIn = false;
 						};
@@ -153,6 +165,7 @@
 						</button>
 					</div>
 				</form>
+				<div bind:this={errorLoginMessage}></div>
 			</div>
 		{:else}
 			<div class="verification-form" transition:fade>
@@ -174,7 +187,7 @@
 								} else if (role === 'parking_manager') {
 									goto('/parking-manager/dashboard');
 								} else if (role === 'user') {
-									console.log	('user')
+									console.log('user');
 									goto(nextRoute || '/user/dashboard');
 								}
 							} else if (result.type === 'error') {
@@ -221,7 +234,6 @@
 
 <style>
 	main {
-		font-family: Arial, sans-serif;
 		background-color: #f4f4f4;
 		margin: 0;
 		padding: 0;

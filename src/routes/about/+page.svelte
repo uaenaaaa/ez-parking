@@ -119,7 +119,6 @@
 <style>
 	main {
 		background-color: #fafafa;
-		font-family: Arial, sans-serif;
 		color: #333;
 		display: flex;
 		flex-direction: column;

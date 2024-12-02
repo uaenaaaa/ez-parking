@@ -5,7 +5,7 @@ import { API_BASE_URL, API_AUTH_VERIFY_EMAIL, API_AUTH_ROOT } from '$env/static/
 import { redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const response = axios.patch(
+	axios.patch(
 		`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_VERIFY_EMAIL}`,
 		{ verification_token: params.code },
 		{ httpsAgent }

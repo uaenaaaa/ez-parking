@@ -1,5 +1,4 @@
 <script>
-	// Enable Add Cashier button when fields are filled
 	document.querySelectorAll('#cashier-form input, #cashier-form select').forEach((input) => {
 		input.addEventListener('input', checkForm);
 	});
@@ -86,7 +85,6 @@
 
 <style>
 	main {
-		font-family: Arial, sans-serif;
 		background: linear-gradient(135deg, #f0f0f5, #7c748f);
 		display: flex;
 		justify-content: center;

@@ -24,18 +24,41 @@
     <div class="sidebar" class:open={sidebarOpen}>
         <h2>Owner Dashboard</h2>
         <ul>
-            <li><a href="Manage-Parking.html">Manage Parking</a></li>
-            <li><a href="set-sched.html">Set Schedule</a></li>
-            <li><a href="Manage-Cashiers.html">Manage Cashiers</a></li>
-            <li><a href="reports.html">View Reports</a></li>
-            <li><a href="acc-settings.html">Account Settings</a></li>
-            <li><a href="/">Log Out</a></li>
+            <li><a href="/parking-manager/manage-parking-lot">Manage Parking</a></li>
+            <li><a href="/parking-manager/schedule">Set Schedule</a></li>
+            <li><a href="M/parking-manager/manage-cashiers">Manage Cashiers</a></li>
+            <li><a href="/parking-manager/reports">View Reports</a></li>
+            <li><a href="/auth/logout">Log Out</a></li>
         </ul>
     </div>
 	<div class="main-content" id="main-content" class:compressed={sidebarOpen}>
 		<h1>Welcome, Parking Owner</h1>
 
 		<div class="dashboard-panels">
+			<div class="panel">
+				<h3>
+					Scan Entry QR Code
+				</h3>
+				<p>
+					Scan the QR code to allow entry to the parking lot.
+				</p>
+				<a href="/parking-manager/entry/" class="btn">
+					Scan QR Code
+				</a>
+			</div>
+
+			<div class="panel">
+				<h3>
+					Scan Exit QR Code
+				</h3>
+				<p>
+					Scan the QR code to allow exit from the parking lot.
+				</p>
+				<a href="/parking-manager/exit/" class="btn">
+					Scan QR Code
+				</a>
+			</div>
+
 			<div class="panel">
 				<h3>Manage Parking Lot</h3>
 				<p>Update parking details, capacity, pricing, and more.</p>
@@ -52,6 +75,26 @@
 				<h3>Manage Cashiers</h3>
 				<p>Assign or remove cashiers for your parking lot.</p>
 				<a href="/parking-manager/manage-cashiers" class="btn">Manage Cashiers</a>
+			</div>
+
+			<div class="panel">
+				<h3>Add Slot</h3>
+				<p>
+					Add a new parking slot to your parking lot.
+				</p>
+				<a href="/parking-manager/new/slot" class="btn">
+					Add Slot
+				</a>
+			</div>
+
+			<div class="panel">
+				<h3>View Transactions</h3>
+				<p>
+					View all transactions made in your parking lot.
+				</p>
+				<a href="/parking-manager/transactions" class="btn">
+					View Transactions
+				</a>
 			</div>
 
 			<div class="panel">
@@ -72,7 +115,6 @@
 <style>
 	main {
 		margin: 0;
-		font-family: Arial, sans-serif;
 		color: #333;
 		background: linear-gradient(135deg, #f0f0f5, #7c748f);
 		display: flex;

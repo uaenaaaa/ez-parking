@@ -92,6 +92,7 @@
 								</a>
 							</div>
 							<div class="flex items-center space-x-2">
+								{#if transaction.status != 'cancelled'}
 								<span
 									class="inline-flex rounded-full px-3 py-1 text-xs font-medium
     {transaction.payment_status === 'PAID'
@@ -104,6 +105,7 @@
 								>
 									{transaction.payment_status}
 								</span>
+								{/if}
 
 								<span
 									class="inline-flex rounded-full px-3 py-1 text-xs font-medium

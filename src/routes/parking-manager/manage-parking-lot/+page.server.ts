@@ -1,28 +1,23 @@
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import axios from 'axios';
 import { httpsAgent } from '$lib/server/http-config';
+import credentialsManager from '$lib/utils/function/credentials-manager';
 
-export const load: PageLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies }) => {
+	const cookiesObject = credentialsManager(cookies);
 	try {
-		const token = cookies.get('Authorization');
-		const xsrfToken = cookies.get('X-CSRF-TOKEN');
-
-		if (!token) {
-			return {
-				establishmentInfo: null,
-				error: 'Not authenticated'
-			};
-		}
-
 		const response = await axios.get(
 			'https://localhost:5000/api/v1/parking-manager/get-all-establishments-info',
 			{
 				headers: {
-					Authorization: `Bearer ${token}`
+					Authorization: cookiesObject.Authorization,
+					'X-CSRF-TOKEN': cookiesObject['X-CSRF-TOKEN'],
+					csrf_refresh_token: cookiesObject.csrf_refresh_token,
+					refresh_token_cookie: cookiesObject.refresh_token_cookie
 				},
 				httpsAgent,
 				withCredentials: true,
-				withXSRFToken: xsrfToken
+				withXSRFToken: true
 			}
 		);
 		console.log('response', response);

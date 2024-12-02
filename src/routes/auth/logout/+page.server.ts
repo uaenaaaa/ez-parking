@@ -3,24 +3,28 @@ import { API_BASE_URL, API_AUTH_LOGOUT, API_AUTH_ROOT } from '$env/static/privat
 import axios from 'axios';
 import { redirect } from '@sveltejs/kit';
 import { httpsAgent } from '$lib/server/http-config';
+import credentialsManager from '$lib/utils/function/credentials-manager';
 
-export const load: PageServerLoad = (async ({ cookies }) => {
-	const authToken = cookies.get('Authorization');
-	const xsrfToken = cookies.get('X-CSRF-TOKEN');
-	const refreshToken = cookies.get('refresh_token_cookie');
-	const refreshXsrfToken = cookies.get('csrf_refresh_token');
+export const load: PageServerLoad = async ({ cookies }) => {
+	const cookiesObject = credentialsManager(cookies);
+	const authToken = cookiesObject.Authorization;
+	const XCSRFToken = cookiesObject['X-CSRF-TOKEN'];
+	const refresh_token_cookie = cookiesObject.refresh_token_cookie;
+	const csrf_refresh_token = cookiesObject.csrf_refresh_token;
 
-	if (!authToken || !xsrfToken || !refreshToken || !refreshXsrfToken) {
+	if (!authToken || !XCSRFToken || !refresh_token_cookie || !csrf_refresh_token) {
 		redirect(303, '/');
 	}
 
-	await axios.post(
+	axios.post(
 		`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_LOGOUT}`,
 		{},
 		{
 			headers: {
-				Authorization: `Bearer ${authToken}`,
-				'X-CSRF-TOKEN': xsrfToken
+				Authorization: authToken,
+				'X-CSRF-TOKEN': XCSRFToken,
+				csrf_refresh_token,
+				refresh_token_cookie
 			},
 			withCredentials: true,
 			httpsAgent
@@ -33,4 +37,4 @@ export const load: PageServerLoad = (async ({ cookies }) => {
 	cookies.delete('csrf_refresh_token', { path: '/' });
 
 	redirect(303, '/');
-}) satisfies PageServerLoad;
+};

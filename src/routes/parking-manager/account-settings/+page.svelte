@@ -162,7 +162,6 @@
 <style>
 	/* General styling */
 	main {
-		font-family: Arial, sans-serif;
 		background: linear-gradient(135deg, #f0f0f5, #7c748f);
 		display: flex;
 		justify-content: center;

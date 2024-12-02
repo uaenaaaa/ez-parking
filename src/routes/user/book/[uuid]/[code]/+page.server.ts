@@ -6,11 +6,11 @@ import {
 	API_TRANSACTION_GET_ESTABLISHMENT_INFO_SLOT_FORM
 } from '$env/static/private';
 import { httpsAgent } from '$lib/server/http-config';
+import credentialsManager from '$lib/utils/function/credentials-manager.js';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
+	const cookieObject = credentialsManager(cookies);
 	try {
-		const token = cookies.get('Authorization');
-		const xsrfToken = cookies.get('X-CSRF-TOKEN');
 		const response = await axios.get(
 			`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_GET_ESTABLISHMENT_INFO_SLOT_FORM}`,
 			{
@@ -19,8 +19,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 					slot_code: params.code
 				},
 				headers: {
-					Authorization: `Bearer ${token}`,
-					'X-CSRF-TOKEN': xsrfToken
+					Authorization: cookieObject.Authorization,
+					'X-CSRF-TOKEN': cookieObject['X-CSRF-TOKEN']
 				},
 				httpsAgent,
 				withCredentials: true,

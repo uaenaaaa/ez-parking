@@ -172,7 +172,6 @@
 <style type="text/css">
 	main {
 		background-color: #767184;
-		font-family: Arial, sans-serif;
 		position: relative;
 		min-height: 100vh; /* Allows page to be scrollable */
 	}

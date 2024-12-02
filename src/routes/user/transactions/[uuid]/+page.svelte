@@ -2,6 +2,8 @@
 	import type { PageData } from './$types';
 	import { NavigationEstablishmentCoords } from '$lib/state/navigation_establishment_coords';
 	import calculateDistance from '$lib/utils/function/calculate-distance';
+	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
 	let isModalOpen = $state(false);
@@ -9,6 +11,7 @@
 	let establishmentLongitude = $state(0);
 	let userLatitude = $state(0);
 	let userLongitude = $state(0);
+	let isCancelModalOpen = $state(false);
 
 	NavigationEstablishmentCoords.subscribe((coords) => {
 		establishmentLatitude = coords.latitude;
@@ -52,6 +55,7 @@
 		};
 		qr_code?: string;
 	};
+	console.log(transactionData);
 	let mapUrl = $state(
 		`https://maps.google.com/maps?width=100%25&height=600&hl=en&q=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}+(${encodeURIComponent(transactionData.transaction_data.establishment_info.name)})&t=&z=14&ie=UTF8&iwloc=B&output=embed`
 	);
@@ -63,20 +67,20 @@
 		});
 	}
 
-	console.log(transactionData);
 
 	$effect(() => {
-		navigator.geolocation.getCurrentPosition((position) => {
-			userLatitude = position.coords.latitude;
-			userLongitude = position.coords.longitude;
-		},
-		(error) => {
-			console.error(error);
-		},
-		{
-			enableHighAccuracy: true,
-		}
-	);
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				userLatitude = position.coords.latitude;
+				userLongitude = position.coords.longitude;
+			},
+			(error) => {
+				console.error(error);
+			},
+			{
+				enableHighAccuracy: true
+			}
+		);
 		return () => {
 			NavigationEstablishmentCoords.set({
 				latitude: 0,
@@ -97,6 +101,7 @@
 					</p>
 				</div>
 				<div class="flex items-center space-x-2">
+					{#if transactionData.transaction_data.status != 'cancelled'}
 					<span
 						class="inline-flex rounded-full px-3 py-1 text-xs font-medium
             {transactionData.transaction_data.payment_status === 'PAID'
@@ -109,6 +114,7 @@
 					>
 						{transactionData.transaction_data.payment_status}
 					</span>
+					{/if}
 
 					<span
 						class="inline-flex rounded-full px-3 py-1 text-xs font-medium
@@ -193,7 +199,7 @@
 
 						<div class="flex justify-between">
 							<dt class="text-sm text-gray-500">Get Directions thru</dt>
-							<dd class="text-sm font-medium text-gray-900 gap-5 flex flex-row">
+							<dd class="flex flex-row gap-5 text-sm font-medium text-gray-900">
 								<a
 									href={`https://www.google.com/maps/dir/?api=1&destination=${transactionData.transaction_data.establishment_info.latitude},${transactionData.transaction_data.establishment_info.longitude}`}
 									target="_blank"
@@ -360,4 +366,87 @@
 			</div>
 		</div>
 	{/if}
+
+	<div class="mt-6 flex justify-end md:col-span-2">
+		<button
+			type="button"
+			class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white focus:ring-red-500 focus:ring-offset-2 {transactionData.transaction_data.status === 'cancelled' ? 'bg-red-200  cursor-not-allowed' : 'focus:ring-2 focus:outline-none bg-red-600 hover:bg-red-700 cursor-pointer'}"
+			onclick={
+				transactionData.transaction_data.status === 'cancelled'
+					? undefined
+					: () => (isCancelModalOpen = true)
+			}
+		>
+			Cancel Transaction
+		</button>
+	</div>
+
+	{#if isCancelModalOpen}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+			onclick={() => (isCancelModalOpen = false)}
+		>
+			<div
+				class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+				onclick={(e) => e.stopPropagation()}
+			>
+				<div class="mb-4 flex items-center">
+					<div
+						class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100"
+					>
+						<svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+							/>
+						</svg>
+					</div>
+					<h3 class="text-lg font-medium text-gray-900">Cancel Transaction</h3>
+				</div>
+
+				<div class="mt-2">
+					<p class="text-sm text-gray-500">
+						Are you sure you want to cancel this transaction? This action cannot be undone.
+					</p>
+				</div>
+
+				<div class="mt-6 flex justify-end space-x-4">
+					<button
+						type="button"
+						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+						onclick={() => (isCancelModalOpen = false)}
+					>
+						No, keep it
+					</button>
+					<form
+						method="POST"
+						use:enhance={() => {
+							console.log(
+								'Cancelling transaction:',
+								transactionData.transaction_data.transaction_id
+							);
+							isCancelModalOpen = false;
+							goto('/user/transactions');
+						}}
+					>
+						<button
+							type="submit"
+							class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+						>
+							Yes, cancel transaction
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Add to script section -->
+	<script>
+		let isCancelModalOpen = $state(false);
+	</script>
 </div>
