@@ -5,6 +5,64 @@
 	let { data }: { data: PageData } = $props();
 	let isLoading = $state(false);
 	let error = $state('');
+	const transactionData = data.transaction as unknown as {
+		code: string;
+		data: {
+			transaction_data: {
+				amount_due: any;
+				created_at: string;
+				entry_time: string;
+				establishment_info: {
+					address: string;
+					contact_number: string;
+					latitude: string;
+					longitude: string;
+					name: string;
+				};
+				exit_time: string;
+				payment_status: string;
+				plate_number: string;
+				slot_details: {
+					floor_level: number;
+					is_premium: string;
+					slot_code: string;
+					slot_features: string;
+					slot_multiplier: number;
+					slot_status: string;
+				};
+				slot_id: number;
+				status: string;
+				transaction_id: number;
+				updated_at: string;
+				uuid: string;
+				vehicle_details: {
+					base_rate_multiplier: number;
+					size_category: string;
+					type_name: string;
+				};
+				vehicle_type_id: number;
+			};
+			transaction_uuid: string;
+			user_info: {
+				creation_date: string;
+				email: string;
+				first_name: string;
+				is_verified: boolean;
+				last_name: string;
+				nickname: any;
+				otp_expiry: any;
+				otp_secret: any;
+				phone_number: string;
+				plate_number: string;
+				role: string;
+				user_id: number;
+				uuid: string;
+				verification_expiry: any;
+				verification_token: any;
+			};
+		};
+		message: string;
+	};
 
 	async function handleEntryApproval() {
 		isLoading = true;
@@ -16,129 +74,128 @@
 </script>
 
 <svelte:head>
-    <title>Entry Verification</title>
+	<title>Entry Verification</title>
 </svelte:head>
-
 <div class="min-h-screen bg-gray-50 p-4">
 	<div class="mx-auto max-w-3xl">
 		<div class="mb-6 rounded-lg bg-white p-6 shadow-sm">
 			<div class="flex items-center justify-between">
-				<div>
-					<h1 class="text-2xl font-bold text-gray-900">Entry Verification</h1>
-					<p class="mt-1 text-sm text-gray-500">Transaction ID: {data.transaction.id}</p>
-				</div>
-				<div class="flex items-center space-x-2">
+				<h1 class="text-2xl font-bold text-gray-900">Entry Verification</h1>
+				<div class="flex space-x-2">
 					<span
 						class="inline-flex rounded-full px-3 py-1 text-xs font-medium
-            {data.transaction.status === 'reserved'
-							? 'bg-yellow-100 text-yellow-800'
-							: 'bg-green-100 text-green-800'}"
-					>
-						{data.transaction.status}
-					</span>
-					<span
-						class="inline-flex rounded-full px-3 py-1 text-xs font-medium
-            {data.transaction.payment_status === 'PAID'
+            {transactionData.data.transaction_data.status === 'active'
 							? 'bg-green-100 text-green-800'
-							: 'bg-red-100 text-red-800'}"
+							: 'bg-yellow-100 text-yellow-800'}"
 					>
-						{data.transaction.payment_status}
+						{transactionData.data.transaction_data.status}
 					</span>
 				</div>
 			</div>
 		</div>
 
-		<div class="grid gap-6 md:grid-cols-2">
+		<form class="space-y-6" method="POST">
 			<div class="rounded-lg bg-white p-6 shadow-sm">
-				<h2 class="text-lg font-medium text-gray-900">Vehicle Information</h2>
-				<dl class="mt-4 space-y-3">
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Plate Number</dt>
-						<dd class="text-sm font-medium text-gray-900">
-							{data.transaction.vehicle.plate_number}
+				<h2 class="text-lg font-semibold text-gray-900">Customer Information</h2>
+				<dl class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Name</dt>
+						<dd class="text-sm text-gray-900">
+							{transactionData.data.user_info.first_name}
+							{transactionData.data.user_info.last_name}
 						</dd>
 					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Vehicle Type</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.vehicle.type}</dd>
-					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Size Category</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.vehicle.size}</dd>
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Contact</dt>
+						<dd class="text-sm text-gray-900">{transactionData.data.user_info.phone_number}</dd>
 					</div>
 				</dl>
 			</div>
 
 			<div class="rounded-lg bg-white p-6 shadow-sm">
-				<h2 class="text-lg font-medium text-gray-900">Parking Slot</h2>
-				<dl class="mt-4 space-y-3">
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Slot Code</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.slot.code}</dd>
+				<h2 class="text-lg font-semibold text-gray-900">Parking Details</h2>
+				<dl class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Vehicle Type</dt>
+						<dd class="text-sm text-gray-900">
+							{transactionData.data.transaction_data.vehicle_details.type_name}
+						</dd>
 					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Floor Level</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.slot.floor_level}</dd>
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Plate Number</dt>
+						<dd class="text-sm text-gray-900">
+							{transactionData.data.transaction_data.plate_number}
+						</dd>
 					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Features</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.slot.features}</dd>
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Slot</dt>
+						<dd class="text-sm text-gray-900">
+							{transactionData.data.transaction_data.slot_details.slot_code}
+						</dd>
 					</div>
-				</dl>
-			</div>
-
-			<div class="rounded-lg bg-white p-6 shadow-sm">
-				<h2 class="text-lg font-medium text-gray-900">Customer Details</h2>
-				<dl class="mt-4 space-y-3">
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Name</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.customer.name}</dd>
-					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Email</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.customer.email}</dd>
-					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Phone</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.customer.phone}</dd>
+					<div>
+						<dt class="text-sm font-medium text-gray-500">Floor Level</dt>
+						<dd class="text-sm text-gray-900">
+							{transactionData.data.transaction_data.slot_details.floor_level}
+						</dd>
 					</div>
 				</dl>
 			</div>
 
 			<div class="rounded-lg bg-white p-6 shadow-sm">
-				<h2 class="text-lg font-medium text-gray-900">Payment Information</h2>
-				<dl class="mt-4 space-y-3">
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Amount</dt>
-						<dd class="text-sm font-medium text-gray-900">₱{data.transaction.payment.amount}</dd>
+				<h2 class="text-lg font-semibold text-gray-900">Payment Collection</h2>
+				<div class="mt-4 space-y-4">
+					<div>
+						<label for="amount_due" class="text-sm font-medium text-gray-700">Amount Due</label>
+						<p id="amount_due" class="text-2xl font-bold text-gray-900">
+							₱{transactionData.data.transaction_data.amount_due}
+						</p>
 					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Method</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.payment.method}</dd>
-					</div>
-					<div class="flex justify-between">
-						<dt class="text-sm text-gray-500">Reference</dt>
-						<dd class="text-sm font-medium text-gray-900">{data.transaction.payment.reference}</dd>
-					</div>
-				</dl>
-			</div>
-		</div>
 
-		<div class="mt-6 flex justify-end space-x-4">
-			<button
-				type="button"
-				class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-				onclick={() => window.history.back()}
-			>
-				Cancel
-			</button>
-			<button
-				type="button"
-				class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex flex-row gap-1 {isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}"
-				onclick={handleEntryApproval}
-				disabled={isLoading}
-			>
-				<svg
+					<div>
+						<label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
+						<select
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							name="payment_status"
+							id="payment_status"
+						>
+							<option value="UNPAID">Unpaid</option>
+							<option value="PARTIALLY_PAID">Partially Paid</option>
+							<option value="PAID">Fully Paid</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="amount_paid" class="block text-sm font-medium text-gray-700">Amount Paid</label>
+						<input
+							type="number"
+							id="amount_paid"
+							name="paid_amount"
+							step="0.01"
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							placeholder="Enter amount"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<!-- Action Buttons -->
+			<div class="flex justify-end space-x-4">
+				<button
+					type="button"
+					class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+					onclick={() => {
+						history.back();
+					}}
+				>
+					Cancel
+				</button>
+				<button
+					type="submit"
+					disabled={isLoading}
+					class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-gray-400"
+				>
+					<svg
 					class="-ml-1 mr-3 h-5 w-5 animate-spin text-white {isLoading ? 'block' : 'hidden'}"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -153,26 +210,9 @@
 					></path>
 				</svg>
 				{isLoading ? 'Processing...' : 'Approve Entry'}
-			</button>
-		</div>
 
-		{#if error}
-			<div class="mt-4 rounded-md bg-red-50 p-4">
-				<div class="flex">
-					<div class="flex-shrink-0">
-						<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-							<path
-								fill-rule="evenodd"
-								d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-								clip-rule="evenodd"
-							/>
-						</svg>
-					</div>
-					<div class="ml-3">
-						<p class="text-sm font-medium text-red-800">{error}</p>
-					</div>
-				</div>
+				</button>
 			</div>
-		{/if}
+		</form>
 	</div>
 </div>
