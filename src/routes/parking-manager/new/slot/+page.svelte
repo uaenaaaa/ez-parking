@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-	interface Response {
+	const vehicleTypes = data as unknown as {
 		vehicleTypes: {
 			code: string;
 			message: string;
@@ -18,8 +18,7 @@
 				vehicle_id: number;
 			}[];
 		};
-	}
-	const vehicleTypes: Response = data;
+	};
 
 	const types = vehicleTypes.vehicleTypes.vehicle_types;
 

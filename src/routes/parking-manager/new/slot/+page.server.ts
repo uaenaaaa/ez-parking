@@ -1,8 +1,8 @@
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import axios from 'axios';
 import { httpsAgent } from '$lib/server/http-config';
 
-export const load: PageLoad = async () => {
+export const load: PageServerLoad = async () => {
 	try {
 		const response = await axios.get(
 			'https://localhost:5000/api/v1/vehicle-type/get-all-vehicle-types',

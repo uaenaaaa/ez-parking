@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 		{},
 		{
 			headers: {
-				Authorization: `Bearer ${authToken}`,
+				Authorization: authToken,
 				'X-CSRF-TOKEN': XCSRFToken,
 				csrf_refresh_token,
 				refresh_token_cookie

@@ -2,6 +2,7 @@ import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import axios from 'axios';
 import { httpsAgent } from '$lib/server/http-config';
+import credentialsManager from '$lib/utils/function/credentials-manager';
 
 axios.defaults.withCredentials = true;
 
@@ -23,7 +24,7 @@ function matchesPattern(path: string, pattern: string): boolean {
 }
 
 function getRoleFromPath(path: string): string | null {
-	for (const [route, _] of Object.entries(ROLE_ROUTES)) {
+	for (const [route] of Object.entries(ROLE_ROUTES)) {
 		if (matchesPattern(path, route)) {
 			return route;
 		}
@@ -33,7 +34,9 @@ function getRoleFromPath(path: string): string | null {
 
 async function verifyAndGetRole(
 	authToken: string | undefined,
-	xsrfToken: string | undefined
+	xsrfToken: string | undefined,
+	csrf_refresh_token: string | undefined,
+	refresh_token_cookie: string | undefined
 ): Promise<UserRole | null> {
 	if (!authToken) return null;
 
@@ -43,8 +46,10 @@ async function verifyAndGetRole(
 			{},
 			{
 				headers: {
-					Authorization: `Bearer ${authToken}`,
-					'X-CSRF-TOKEN': xsrfToken || ''
+					Authorization: authToken,
+					'X-CSRF-TOKEN': xsrfToken || '',
+					refresh_token_cookie: refresh_token_cookie || '',
+					csrf_refresh_token: csrf_refresh_token || ''
 				},
 				withCredentials: true,
 				httpsAgent
@@ -71,12 +76,19 @@ function getRedirectPath(role: UserRole): string {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const PROTECTED_ENDPOINTS = ['/parking-manager', '/admin', '/user'];
-	const authToken = event.cookies.get('Authorization');
-	const xsrfToken = event.cookies.get('X-CSRF-TOKEN');
+	const cookiesObject = credentialsManager(event.cookies);
+	const authToken = cookiesObject.Authorization;
+	const xsrfToken = cookiesObject['X-CSRF-TOKEN'];
+	const csrf_refresh_token = cookiesObject.csrf_refresh_token;
+	const refresh_token_cookie = cookiesObject.refresh_token_cookie;
 
-	// Check if user is on login page
 	if (event.url.pathname.endsWith('/login')) {
-		const userRole = await verifyAndGetRole(authToken, xsrfToken);
+		const userRole = await verifyAndGetRole(
+			authToken,
+			xsrfToken,
+			csrf_refresh_token,
+			refresh_token_cookie
+		);
 		if (userRole) {
 			throw redirect(303, getRedirectPath(userRole));
 		}
@@ -95,7 +107,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 		throw redirect(303, '/');
 	}
 
-	const userRole = await verifyAndGetRole(authToken, xsrfToken);
+	const userRole = await verifyAndGetRole(
+		authToken,
+		xsrfToken,
+		csrf_refresh_token,
+		refresh_token_cookie
+	);
 	if (!userRole) {
 		throw redirect(303, '/');
 	}

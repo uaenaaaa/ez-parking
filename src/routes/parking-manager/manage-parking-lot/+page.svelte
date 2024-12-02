@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-	interface Info {
+	let info = data as unknown as {
 		establishmentInfo: {
 			code: string;
 			data: {
@@ -38,8 +38,7 @@
 			};
 			message: string;
 		};
-	}
-	let info: Info = data;
+	};
 </script>
 
 <svelte:head>

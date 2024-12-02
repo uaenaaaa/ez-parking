@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 				},
 				headers: {
 					Authorization: cookiesObject.Authorization,
-					'X-CSRF-Token': cookiesObject['X-CSRF-TOKEN'],
+					'X-CSRF-TOKEN': cookiesObject['X-CSRF-TOKEN'],
 					csrf_refresh_token: cookiesObject.csrf_refresh_token,
 					refresh_token_cookie: cookiesObject.refresh_token_cookie
 				},
