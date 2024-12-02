@@ -71,6 +71,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>User Login | EZ Parking</title>
+</svelte:head>
+
 <main>
 	<nav class="navbar">
 		<div class="logo">

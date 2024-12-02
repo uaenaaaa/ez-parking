@@ -24,7 +24,10 @@ export const actions: Actions = {
 				return fail(400, { success: false, message: 'Missing required fields' });
 			}
 			if (firstName.length < 2 || lastName.length < 2) {
-				return fail(400, { success: false, message: 'First and Last Name must be at least 2 characters long' });
+				return fail(400, {
+					success: false,
+					message: 'First and Last Name must be at least 2 characters long'
+				});
 			}
 			if (!validatePlateNumber(plateNumber)) {
 				return fail(400, { success: false, message: 'Invalid plate number' });
@@ -47,8 +50,13 @@ export const actions: Actions = {
 			console.log(await response);
 			return (await response).data;
 		} catch (error) {
-			console.error(error);
-			return fail(401, { success: false, message: 'Invalid credentials' });
+			if (axios.isAxiosError(error)) {
+				return fail(error.response?.status || 500, {
+					success: false,
+					message: error.response?.data?.message || 'An error occurred'
+				});
+			}
+			return fail(500, { success: false, message: 'An unexpected error occurred' });
 		}
 	}
 };

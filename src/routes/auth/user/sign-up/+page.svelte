@@ -5,8 +5,9 @@
 </script>
 
 <svelte:head>
-	<title>Sign Up</title>
+	<title>User Sign Up | EZ Parking</title>
 </svelte:head>
+
 <main>
 	<div class="registration-form">
 		<h2>Sign Up</h2>
@@ -16,7 +17,7 @@
 			use:enhance={() => {
 				return async ({ result }) => {
 					if (result.type === 'failure') {
-						errorMessage.innerText = result.data.message as string;
+						errorMessage.innerText = result.data?.message as string;
 					} else {
 						errorMessage.innerText = '';
 						goto('/auth/success');
@@ -36,7 +37,13 @@
 				minlength="11"
 			/>
 			<input type="text" id="nickname" name="nickname" placeholder="Nickname" />
-			<input type="text" name="plate-number" id="plate-number" placeholder="Plate number" required>
+			<input
+				type="text"
+				name="plate-number"
+				id="plate-number"
+				placeholder="Plate number"
+				required
+			/>
 			<div id="error-message" class="error-message" bind:this={errorMessage}></div>
 			<button type="submit">Sign Up</button>
 			<a href="/auth/user/login">Login to my account instead</a>
