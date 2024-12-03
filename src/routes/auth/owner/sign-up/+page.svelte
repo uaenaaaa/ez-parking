@@ -1,782 +1,683 @@
-<script>
-	$effect(() => {
-		document.getElementById('accessInfo').addEventListener('change', function () {
-			var customInput = document.getElementById('customAccessInfo');
+<script lang="ts">
+	// @ts-nocheck
+	import { enhance } from '$app/forms';
+	import { fade } from 'svelte/transition';
 
-			// If "Other" is selected, show the text box for custom input
-			if (this.value === 'Other') {
-				customInput.classList.remove('hidden');
-			} else {
-				customInput.classList.add('hidden');
-			}
-		});
-
-		document.querySelectorAll('.enable-day').forEach((checkbox) => {
-			checkbox.addEventListener('change', function () {
-				const day = this.getAttribute('data-day');
-				const dayHours = document.getElementById(`${day.toLowerCase()}-hours`);
-				dayHours.classList.toggle('hidden', !this.checked);
-			});
-		});
-
-		// JavaScript to toggle rate input based on the checkbox
-		document.querySelectorAll('.enable-rate').forEach((checkbox) => {
-			checkbox.addEventListener('change', function () {
-				const rate = this.getAttribute('data-rate');
-				const rateInput = document.getElementById(`${rate}-rate`);
-				rateInput.classList.toggle('hidden', !this.checked);
-			});
-		});
-
-		// Show text input if "Other" option is selected
-		document.getElementById('otherPayment').addEventListener('change', function () {
-			const otherTextInput = document.getElementById('otherPaymentText');
-			otherTextInput.classList.toggle('hidden', !this.checked);
-		});
-
-		// Get the modal and button elements
-		var modal = document.getElementById('verifyModal');
-		var registerButton = document.getElementById('registerButton');
-		var okButton = document.getElementById('okButton');
-
-		// When the user clicks the Register button, show the modal
-		registerButton.onclick = function () {
-			modal.style.display = 'block';
-		};
-
-		// When the user clicks "OK", redirect to vemail.html
-		okButton.onclick = function () {
-			window.location.href = 'vemail.html'; // Redirect to vemail.html
-		};
-
-		// Close the modal if the user clicks anywhere outside of it
-		window.onclick = function (event) {
-			if (event.target == modal) {
-				modal.style.display = 'none';
-			}
-		};
-
-		// JavaScript for Conditional Display
-		document.getElementById('ownerType').addEventListener('change', function () {
-			const ownerType = this.value;
-			document
-				.getElementById('individualFields')
-				.classList.toggle('hidden', ownerType !== 'Individual');
-			document.getElementById('companyFields').classList.toggle('hidden', ownerType !== 'Company');
-			document.getElementById('businessCert').classList.toggle('hidden', ownerType !== 'Company');
-		});
-
-		const spaceLayoutSelect = document.getElementById('spaceLayout');
-		const otherLayoutInput = document.getElementById('otherSpaceLayout');
-		const otherLayoutLabel = document.getElementById('otherLayoutLabel');
-
-		spaceLayoutSelect.addEventListener('change', function () {
-			if (spaceLayoutSelect.value === 'other') {
-				otherLayoutInput.classList.remove('hidden');
-				otherLayoutLabel.classList.remove('hidden');
-			} else {
-				otherLayoutInput.classList.add('hidden');
-				otherLayoutLabel.classList.add('hidden');
-			}
-		});
+	let formData = $state({
+		agreed: false,
+		ownerType: 'Individual',
+		firstName: '',
+		middleName: '',
+		lastName: '',
+		suffix: '',
+		businessName: '',
+		companyRegNumber: '',
+		contactNumber: '',
+		email: '',
+		tin: '',
+		address: {
+			street: '',
+			barangay: '',
+			city: '',
+			province: '',
+			postalCode: '',
+			landmarks: ''
+		},
+		parkingDetails: {
+			spaceType: 'Indoor',
+			spaceLayout: 'parallel',
+			is24Hours: false,
+			customLayout: '',
+			dimensions: '',
+			operatingHours: {
+				monday: { enabled: false, open: '', close: '' },
+				tuesday: { enabled: false, open: '', close: '' },
+				wednesday: { enabled: false, open: '', close: '' },
+				thursday: { enabled: false, open: '', close: '' },
+				friday: { enabled: false, open: '', close: '' },
+				saturday: { enabled: false, open: '', close: '' },
+				sunday: { enabled: false, open: '', close: '' }
+			},
+			accessInfo: '',
+			customAccess: ''
+		},
+		facilities: {
+			lighting: '',
+			accessibility: '',
+			nearby: ''
+		},
+		pricing: {
+			hourly: { enabled: false, rate: 0 },
+			daily: { enabled: false, rate: 0 },
+			monthly: { enabled: false, rate: 0 }
+		},
+		paymentMethods: {
+			cash: false,
+			mobile: false,
+			other: false,
+			otherText: ''
+		},
+		location: {
+			latitude: 14.5995,
+			longitude: 120.9842
+		},
+		files: {
+			govId: null,
+			parkingPhotos: [],
+			proofOfOwnership: null,
+			businessCert: null,
+			birCert: null,
+			liabilityInsurance: null
+		},
+		zoningCompliance: false
 	});
+
+	let map;
+	let marker;
+	let isSubmitting = $state(false);
+	let errors = $state({
+		address: ''
+	});
+
+	$effect(() => {
+		// Initialize map
+		map = L.map('map').setView([formData.location.latitude, formData.location.longitude], 13);
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			maxZoom: 19,
+			attribution: '© OpenStreetMap contributors'
+		}).addTo(map);
+
+		map.on('click', (e) => {
+			const { lat, lng } = e.latlng;
+			updateMarker(lat, lng);
+		});
+
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				const { latitude, longitude } = position.coords;
+				updateMarker(latitude, longitude);
+			},
+			() => {
+				fetch('https://ipapi.co/json')
+					.then((response) => response.json())
+					.then((data) => {
+						updateMarker(data.latitude, data.longitude);
+					});
+			}
+		);
+
+		return () => map?.remove();
+	});
+
+	function updateMarker(lat: number, lng: number) {
+		formData.location.latitude = lat;
+		formData.location.longitude = lng;
+
+		if (marker) {
+			marker.setLatLng([lat, lng]);
+		} else {
+			marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+			marker.on('dragend', () => {
+				const pos = marker.getLatLng();
+				updateMarker(pos.lat, pos.lng);
+			});
+		}
+
+		map.setView([lat, lng], map.getZoom());
+	}
+
+	async function searchLocation() {
+		if (!formData.address.street) {
+			errors.address = 'Please enter a street address';
+			return;
+		}
+
+		try {
+			const query = `${formData.address.street}, ${formData.address.city}, Philippines`;
+			const response = await fetch(
+				`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
+			);
+			const data = await response.json();
+
+			if (data.length > 0) {
+				const { lat, lon } = data[0];
+				updateMarker(Number(lat), Number(lon));
+			} else {
+				errors.address = 'Location not found';
+			}
+		} catch (error) {
+			console.error('Search error:', error);
+			errors.address = 'Error searching location';
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>Owner Sign Up | EZ Parking</title>
+	<link
+		rel="stylesheet"
+		href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+		integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+		crossorigin=""
+	/>
+	<script
+		src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+		crossorigin=""
+	></script>
 </svelte:head>
 
-<main>
-	<header>
-		<nav class="navbar">
-			<div class="logo">
-				<a href="/"><img src="../../logo.png" alt="EZParking Logo" /></a>
+<!-- Add the template HTML with reactive bindings -->
+<main class="min-h-screen bg-gray-50">
+	<header class="bg-white shadow">
+		<nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
+			<div class="flex lg:flex-1">
+				<a href="/" class="-m-1.5 p-1.5">
+					<img src="/logo.png" alt="EZ Parking" class="h-10 w-auto" />
+				</a>
 			</div>
-			<a href="/auth/owner/login"> Login Instead </a>
+			<div class="flex lg:flex-1 lg:justify-end">
+				<a href="/auth/owner/login" class="text-sm font-semibold leading-6 text-gray-900">
+					Login Instead <span aria-hidden="true">&rarr;</span>
+				</a>
+			</div>
 		</nav>
 	</header>
 
-	<h2>Hi Parking Owners! This is your Sign Up Form.</h2>
-	<p>Please fill in your contact information to register your journey with us.</p>
+	<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+		<div class="mx-auto max-w-3xl">
+			<h1 class="text-center text-3xl font-bold tracking-tight text-gray-900">
+				Parking Owner Registration
+			</h1>
+			<p class="mt-2 text-center text-sm text-gray-600">
+				Please fill in your details to register your parking facility
+			</p>
 
-	<form id="registrationForm">
-		<!-- Owner Type Selection -->
-		<label for="ownerType">Owner Type:</label>
-		<select id="ownerType" name="ownerType" required>
-			<option value="">Select...</option>
-			<option value="Individual">Individual</option>
-			<option value="Company">Company</option>
-		</select>
-		<br /><br />
+			<form
+				method="POST"
+				class="mt-12 space-y-12"
+				use:enhance={() => {
+					isSubmitting = true;
+					errors = {};
 
-		<!-- Individual Owner Fields -->
-		<div id="individualFields" class="hidden">
-			<label for="firstName">First Name:</label>
-			<input type="text" id="firstName" name="firstName" required />
-			<br /><br />
-
-			<label for="middleName">Middle Name (optional):</label>
-			<input type="text" id="middleName" name="middleName" />
-			<br /><br />
-
-			<label for="lastName">Last Name:</label>
-			<input type="text" id="lastName" name="lastName" required />
-			<br /><br />
-
-			<label for="suffix">Suffix (optional):</label>
-			<input type="text" id="suffix" name="suffix" />
-			<br /><br />
-		</div>
-
-		<!-- Company Owner Fields -->
-		<div id="companyFields" class="hidden">
-			<label for="businessName">Business Name:</label>
-			<input type="text" id="businessName" name="businessName" required />
-			<br /><br />
-
-			<label for="companyRegNumber">Company Registration Number:</label>
-			<input type="text" id="companyRegNumber" name="companyRegNumber" />
-			<br /><br />
-		</div>
-
-		<!-- Contact Information -->
-		<label for="contactNumber">Contact Number:</label>
-		<input type="tel" id="contactNumber" name="contactNumber" required />
-		<br /><br />
-
-		<label for="email">Email:</label>
-		<input type="email" id="email" name="email" required />
-		<br /><br />
-
-		<!-- TIN and Government ID Upload -->
-		<label for="tin">Tax Identification Number (TIN):</label>
-		<input type="text" id="tin" name="tin" required />
-		<br /><br />
-
-		<label for="govIdUpload">Upload Government ID (for verification):</label>
-		<input
-			type="file"
-			id="govIdUpload"
-			name="govIdUpload"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
-
-		<!-- Parking Location Details -->
-		<h3>Parking Location Details</h3>
-
-		<label for="streetAddress">Street Address:</label>
-		<input type="text" id="streetAddress" name="streetAddress" required />
-		<br /><br />
-
-		<label for="barangay">Barangay:</label>
-		<input type="text" id="barangay" name="barangay" required />
-		<br /><br />
-
-		<label for="city">City/Municipality:</label>
-		<input type="text" id="city" name="city" required />
-		<br /><br />
-
-		<label for="province">Province (if applicable):</label>
-		<input type="text" id="province" name="province" />
-		<br /><br />
-
-		<label for="postalCode">Postal Code:</label>
-		<input type="text" id="postalCode" name="postalCode" />
-		<br /><br />
-
-		<label for="landmarks">Landmarks or Directions (optional):</label>
-		<input type="text" id="landmarks" name="landmarks" />
-		<br /><br />
-
-		<label for="spaceType">Parking Space Type:</label>
-		<select id="spaceType" name="spaceType" required>
-			<option value="Indoor">Indoor</option>
-			<option value="Outdoor">Outdoor</option>
-			<option value="Covered">Covered</option>
-			<option value="Uncovered">Uncovered</option>
-		</select>
-		<br /><br />
-
-		<label for="spaceLayout">Space Layout:</label>
-		<select id="spaceLayout" name="spaceLayout" required>
-			<option value="parallel">Parallel</option>
-			<option value="perpendicular">Perpendicular</option>
-			<option value="angled">Angled</option>
-			<option value="other">Other (please specify)</option>
-		</select>
-
-		<label for="otherSpaceLayout" id="otherLayoutLabel" class="hidden"
-			>Please specify the layout:</label
-		>
-		<input
-			type="text"
-			id="otherSpaceLayout"
-			name="otherSpaceLayout"
-			class="hidden"
-			placeholder="Describe the space layout if 'Other' is selected"
-		/>
-
-		<label for="spaceDimensions">Space Dimensions (in meters):</label>
-		<input
-			type="text"
-			id="spaceDimensions"
-			name="spaceDimensions"
-			required
-			placeholder="Enter width x length (e.g., 3m x 5m)"
-		/>
-
-		<h3>Operating Hours</h3>
-
-		<div id="operatingDays">
-			<div class="day-option">
-				<label for="mondayEnable">Monday</label>
-				<input type="checkbox" id="mondayEnable" class="enable-day" data-day="Monday" />
-				<div id="monday-hours" class="day-hours hidden">
-					<label for="mondayOpen">Opening Hour:</label>
-					<input type="time" id="mondayOpen" name="mondayOpen" />
-					<label for="mondayClose">Closing Hour:</label>
-					<input type="time" id="mondayClose" name="mondayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="tuesdayEnable">Tuesday</label>
-				<input type="checkbox" id="tuesdayEnable" class="enable-day" data-day="Tuesday" />
-				<div id="tuesday-hours" class="day-hours hidden">
-					<label for="tuesdayOpen">Opening Hour:</label>
-					<input type="time" id="tuesdayOpen" name="tuesdayOpen" />
-					<label for="tuesdayClose">Closing Hour:</label>
-					<input type="time" id="tuesdayClose" name="tuesdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="wednesdayEnable">Wednesday</label>
-				<input type="checkbox" id="wednesdayEnable" class="enable-day" data-day="Wednesday" />
-				<div id="wednesday-hours" class="day-hours hidden">
-					<label for="wednesdayOpen">Opening Hour:</label>
-					<input type="time" id="wednesdayOpen" name="wednesdayOpen" />
-					<label for="wednesdayClose">Closing Hour:</label>
-					<input type="time" id="wednesdayClose" name="wednesdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="thursdayEnable">Thursday</label>
-				<input type="checkbox" id="thursdayEnable" class="enable-day" data-day="Thursday" />
-				<div id="thursday-hours" class="day-hours hidden">
-					<label for="thursdayOpen">Opening Hour:</label>
-					<input type="time" id="thursdayOpen" name="thursdayOpen" />
-					<label for="thursdayClose">Closing Hour:</label>
-					<input type="time" id="thursdayClose" name="thursdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="fridayEnable">Friday</label>
-				<input type="checkbox" id="fridayEnable" class="enable-day" data-day="Friday" />
-				<div id="friday-hours" class="day-hours hidden">
-					<label for="fridayOpen">Opening Hour:</label>
-					<input type="time" id="fridayOpen" name="fridayOpen" />
-					<label for="fridayClose">Closing Hour:</label>
-					<input type="time" id="fridayClose" name="fridayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="saturdayEnable">Saturday</label>
-				<input type="checkbox" id="saturdayEnable" class="enable-day" data-day="Saturday" />
-				<div id="saturday-hours" class="day-hours hidden">
-					<label for="saturdayOpen">Opening Hour:</label>
-					<input type="time" id="saturdayOpen" name="saturdayOpen" />
-					<label for="saturdayClose">Closing Hour:</label>
-					<input type="time" id="saturdayClose" name="saturdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="sundayEnable">Sunday</label>
-				<input type="checkbox" id="sundayEnable" class="enable-day" data-day="Sunday" />
-				<div id="sunday-hours" class="day-hours hidden">
-					<label for="sundayOpen">Opening Hour:</label>
-					<input type="time" id="sundayOpen" name="sundayOpen" />
-					<label for="sundayClose">Closing Hour:</label>
-					<input type="time" id="sundayClose" name="sundayClose" />
-				</div>
-			</div>
-		</div>
-
-		<label for="accessInfo">Access Information (optional):</label>
-		<select id="accessInfo" name="accessInfo">
-			<option value="">Select...</option>
-			<option value="Gate Code">Gate Code</option>
-			<option value="Security Check">Security Check</option>
-			<option value="Key Pickup">Key Pickup</option>
-			<option value="No Special Access">No Special Access</option>
-			<option value="Other">Other (Please specify)</option>
-		</select>
-
-		<!-- Custom input field for 'Other' selection -->
-		<input
-			type="text"
-			id="customAccessInfo"
-			name="customAccessInfo"
-			class="hidden"
-			placeholder="Enter custom access details"
-		/>
-
-		<label for="parkingPhotos">Upload Photos of the Parking Location:</label>
-		<input type="file" id="parkingPhotos" name="parkingPhotos" accept="image/*" multiple required />
-		<br /><br />
-
-		<!-- Facilities & Amenities Section -->
-		<h3>Facilities & Amenities</h3>
-
-		<label for="lightingAndSecurity">Lighting and Security Features:</label>
-		<input
-			type="text"
-			id="lightingAndSecurity"
-			name="lightingAndSecurity"
-			placeholder="e.g., CCTV, On-site security"
-			required
-		/>
-		<br /><br />
-
-		<label for="accessibilityOptions">Accessibility Options:</label>
-		<input
-			type="text"
-			id="accessibilityOptions"
-			name="accessibilityOptions"
-			placeholder="e.g., Disabled parking spots, Wheelchair access"
-			required
-		/>
-		<br /><br />
-
-		<label for="nearbyFacilities">Nearby Facilities:</label>
-		<input
-			type="text"
-			id="nearbyFacilities"
-			name="nearbyFacilities"
-			placeholder="e.g., EV charging stations, Restrooms, Elevators"
-			required
-		/>
-		<br /><br />
-
-		<!-- Pricing Information Section -->
-		<h3>Pricing Information</h3>
-
-		<div id="pricing">
-			<div class="rate-option">
-				<label for="hourlyEnable">Hourly Rate</label>
-				<input type="checkbox" id="hourlyEnable" class="enable-rate" data-rate="hourly" />
-				<div id="hourly-rate" class="rate-input hidden">
-					<label for="hourlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="hourlyRate"
-							name="hourlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
-					</div>
-				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="dailyEnable">Daily Rate</label>
-				<input type="checkbox" id="dailyEnable" class="enable-rate" data-rate="daily" />
-				<div id="daily-rate" class="rate-input hidden">
-					<label for="dailyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input type="number" id="dailyRate" name="dailyRate" placeholder="Enter Rate" min="0" />
-					</div>
-				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="monthlyEnable">Monthly Rate</label>
-				<input type="checkbox" id="monthlyEnable" class="enable-rate" data-rate="monthly" />
-				<div id="monthly-rate" class="rate-input hidden">
-					<label for="monthlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="monthlyRate"
-							name="monthlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<h3>Accepted Payment Methods</h3>
-
-		<div class="payment-methods">
-			<div class="payment-option">
-				<input type="checkbox" id="cashPayment" name="paymentMethod" value="cash" />
-				<label for="cashPayment">Cash</label>
-			</div>
-
-			<div class="payment-option">
-				<input type="checkbox" id="mobilePayment" name="paymentMethod" value="mobilePayment" />
-				<label for="mobilePayment">Mobile Payment</label>
-			</div>
-
-			<div class="payment-option">
-				<input type="checkbox" id="otherPayment" name="paymentMethod" value="other" />
-				<label for="otherPayment">Other</label>
-				<input
-					type="text"
-					id="otherPaymentText"
-					name="otherPaymentText"
-					placeholder="Specify other method"
-					class="hidden"
-				/>
-			</div>
-		</div>
-
-		<!-- Legal and Compliance Documents -->
-		<h3>Legal & Compliance Requirements</h3>
-
-		<!-- Proof of Ownership/Lease Agreement -->
-		<label for="proofOfOwnership">Proof of Ownership/Lease Agreement:</label>
-		<input
-			type="file"
-			id="proofOfOwnership"
-			name="proofOfOwnership"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
-
-		<!-- Business Registration Certificate (for companies) -->
-		<label for="businessCert">Business Registration Certificate (for companies):</label>
-		<input
-			type="file"
-			id="businessCert"
-			name="businessCert"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
-
-		<!-- BIR Certificate -->
-		<label for="birCert">BIR Certificate:</label>
-		<input type="file" id="birCert" name="birCert" accept="image/*,application/pdf" required />
-		<br /><br />
-
-		<!-- Liability Insurance Document -->
-		<label for="liabilityInsurance">Liability Insurance Document:</label>
-		<input
-			type="file"
-			id="liabilityInsurance"
-			name="liabilityInsurance"
-			accept="image/*,application/pdf"
-		/>
-		<br /><br />
-
-		<!-- Compliance with Zoning Laws -->
-		<div>
-			<input type="checkbox" id="zoningCompliance" name="zoningCompliance" required />
-			<label for="zoningCompliance"
-				>I confirm that the parking facility complies with local zoning laws.</label
+					return async ({ result }) => {
+						isSubmitting = false;
+						if (result.type === 'success') {
+							// Handle success
+						} else {
+							// Handle errors
+							errors = result.data?.errors || {};
+						}
+					};
+				}}
 			>
-		</div>
-		<br />
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Owner Information</h3>
+					<div class="grid gap-6 md:grid-cols-2">
+						<div class="col-span-2">
+							<label class="block text-sm font-medium text-gray-700" for="ownerType"
+								>Owner Type</label
+							>
+							<select
+								id="ownerType"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								bind:value={formData.ownerType}
+								name="ownerType"
+								required
+							>
+								<option value="Individual">Individual</option>
+								<option value="Company">Company</option>
+							</select>
+						</div>
 
-		<!-- Register Button -->
-		<button id="registerButton" type="submit">Register</button>
+						{#if formData.ownerType === 'Individual'}
+							<div class="grid gap-6 grid-cols-1 col-span-2 md:grid-cols-2">
+								<div>
+									<label for="firstName" class="block text-sm font-medium text-gray-700"
+										>First Name</label
+									>
+									<input
+										id="firstName"
+										type="text"
+										name="firstName"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label class="block text-sm font-medium text-gray-700" for="middleName"
+										>Middle Name (optional)</label
+									>
+									<input
+										type="text"
+										id="middleName"
+										name="middleName"
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label for="lastName" class="block text-sm font-medium text-gray-700"
+										>Last Name</label
+									>
+									<input
+										type="text"
+										id="lastName"
+										name="lastName"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label for="suffix" class="block text-sm font-medium text-gray-700"
+										>Suffix (optional)</label
+									>
+									<input
+										id="suffix"
+										type="text"
+										name="suffix"
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+							</div>
+						{:else}
+							<div class="space-y-6 col-span-2 grid-cols-1 md:grid-cols-2">
+								<div>
+									<label for="businessName" class="block text-sm font-medium text-gray-700"
+										>Business Name</label
+									>
+									<input
+										type="text"
+										id="businessName"
+										name="businessName"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label for="companyRegNumber" class="block text-sm font-medium text-gray-700"
+										>Company Registration Number</label
+									>
+									<input
+										id="companyRegNumber"
+										type="text"
+										name="companyRegNumber"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+							</div>
+						{/if}
 
-		<!-- Modal for Email Verification -->
-		<div id="verifyModal" class="modal">
-			<div class="modal-content">
-				<p>Please verify your email. Click OK to proceed.</p>
-				<button id="okButton">OK</button>
-			</div>
+						<div class="grid gap-6 col-span-2 md:grid-cols-2">
+							<div>
+								<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+								<input
+									type="email"
+									name="email"
+									id="email"
+									required
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
+							</div>
+							<div>
+								<label for="contactNumber" class="block text-sm font-medium text-gray-700"
+									>Phone Number</label
+								>
+								<input
+									type="tel"
+									id="contactNumber"
+									name="contactNumber"
+									required
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Parking Location</h3>
+
+					<div class="grid gap-6 md:grid-cols-2">
+						<div class="md:col-span-2">
+							<label for="streetAddress" class="block text-sm font-medium text-gray-700"
+								>Street Address</label
+							>
+							<input
+								type="text"
+								id="streetAddress"
+								name="streetAddress"
+								required
+								bind:value={formData.address.street}
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="barangay" class="block text-sm font-medium text-gray-700">Barangay</label>
+							<input
+								id="barangay"
+								type="text"
+								name="barangay"
+								required
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="city" class="block text-sm font-medium text-gray-700"
+								>City/Municipality</label
+							>
+							<input
+								type="text"
+								name="city"
+								id="city"
+								required
+								bind:value={formData.address.city}
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="province" class="block text-sm font-medium text-gray-700">Province</label>
+							<input
+								id="province"
+								type="text"
+								name="province"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="postalCode" class="block text-sm font-medium text-gray-700"
+								>Postal Code</label
+							>
+							<input
+								id="postalCode"
+								type="text"
+								name="postalCode"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="longitude" class="block text-sm font-medium text-gray-700"
+								>Longitude</label
+							>
+							<input
+								id="longitude"
+								type="number"
+								disabled
+								name="longitude"
+								bind:value={formData.location.longitude}
+								class="mt-1 block w-full cursor-not-allowed rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+
+						<div>
+							<label for="latitude" class="block text-sm font-medium text-gray-700">Latitude</label>
+							<input
+								id="latitude"
+								disabled
+								bind:value={formData.location.latitude}
+								type="number"
+								name="latitude"
+								class="mt-1 block w-full cursor-not-allowed rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							/>
+						</div>
+					</div>
+
+					<div class="mt-6">
+						<div id="map" class="h-96 w-full rounded-lg"></div>
+						<div class="mt-4 flex items-center justify-between">
+							<button
+								type="button"
+								class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+								onclick={searchLocation}
+							>
+								Search Location
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Facilities & Amenities</h3>
+
+					<div class="space-y-6">
+						<div>
+							<label for="lighting" class="block text-sm font-medium text-gray-700">
+								Security Features
+							</label>
+							<textarea
+								name="lighting"
+								rows="3"
+								id="lighting"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								placeholder="Describe security features (CCTV, guards, lighting, etc.)"
+							></textarea>
+						</div>
+
+						<div>
+							<label class="block text-sm font-medium text-gray-700" for="accessibility">
+								Accessibility Features
+							</label>
+							<textarea
+								id="accessibility"
+								name="accessibility"
+								rows="3"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								placeholder="Describe accessibility features (ramps, elevators, etc.)"
+							></textarea>
+						</div>
+
+						<div>
+							<label for="nearby" class="block text-sm font-medium text-gray-700">
+								Nearby Establishments
+							</label>
+							<textarea
+								name="nearby"
+								id="nearby"
+								rows="3"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								placeholder="List nearby establishments and landmarks"
+							></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<div class="flex items-center justify-between">
+						<h3 class="text-lg font-medium text-gray-900">Operating Hours</h3>
+						<div class="flex items-center">
+							<input
+								type="checkbox"
+								id="is24Hours"
+								bind:checked={formData.parkingDetails.is24Hours}
+								name="is24Hours"
+								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							/>
+							<label for="is24Hours" class="ml-2 text-sm text-gray-700">Open 24/7</label>
+						</div>
+					</div>
+					{#if !formData.parkingDetails.is24Hours}
+						<div class="mt-6 space-y-4">
+							{#each Object.entries(formData.parkingDetails.operatingHours) as [day, hours]}
+								<div class="flex items-center space-x-4">
+									<div class="w-32">
+										<input
+											type="checkbox"
+											id={`${day}Enabled`}
+											bind:checked={hours.enabled}
+											class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+										/>
+										<label for={`${day}Enabled`} class="text-sm font-medium text-gray-700">
+											{day.charAt(0).toUpperCase() + day.slice(1)}
+										</label>
+									</div>
+									<div class="grid flex-1 grid-cols-2 gap-4">
+										<input
+											type="time"
+											bind:value={hours.open}
+											disabled={!hours.enabled}
+											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+										/>
+										<input
+											type="time"
+											bind:value={hours.close}
+											disabled={!hours.enabled}
+											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+										/>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Pricing Structure</h3>
+
+					<div class="space-y-6">
+						{#each Object.entries(formData.pricing) as [type, config]}
+							<div class="flex items-center space-x-4">
+								<input
+									type="checkbox"
+									id={`${type}Enabled`}
+									bind:checked={config.enabled}
+									class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+								/>
+								<label for={`${type}Enabled`} class="w-24 text-sm font-medium text-gray-700">
+									{type.charAt(0).toUpperCase() + type.slice(1)} Rate
+								</label>
+								<div class="relative rounded-md shadow-sm">
+									<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+										<span class="text-gray-500 sm:text-sm">₱</span>
+									</div>
+									<input
+										type="number"
+										min="0"
+										step="0.01"
+										bind:value={config.rate}
+										disabled={!config.enabled}
+										class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 sm:text-sm"
+									/>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Required Documents</h3>
+
+					<div class="space-y-6">
+						{#each Object.entries(formData.files) as [type, file]}
+							<div>
+								<label for="filesUpload" class="block text-sm font-medium text-gray-700">
+									{type
+										.split(/(?=[A-Z])/)
+										.join(' ')
+										.toUpperCase()}
+									{type !== 'parkingPhotos' ? '(PDF or Image)' : '(Images)'}
+								</label>
+								<div
+									class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
+								>
+									<div class="space-y-1 text-center">
+										<svg
+											class="mx-auto h-12 w-12 text-gray-400"
+											stroke="currentColor"
+											fill="none"
+											viewBox="0 0 48 48"
+										>
+											<path
+												d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+										</svg>
+										<div class="flex text-sm text-gray-600">
+											<label
+												for={type}
+												class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+											>
+												<span>Upload a file</span>
+												<input
+													id={type}
+													name={type}
+													type="file"
+													class="sr-only"
+													accept={type === 'parkingPhotos' ? 'image/*' : '.pdf,image/*'}
+													multiple={type === 'parkingPhotos'}
+												/>
+											</label>
+											<p class="pl-1">or drag and drop</p>
+										</div>
+										<p class="text-xs text-gray-500">
+											{type === 'parkingPhotos'
+												? 'PNG, JPG, GIF up to 10MB each'
+												: 'PDF or images up to 10MB'}
+										</p>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div class="space-y-6">
+					<div class="rounded-md bg-blue-50 p-4">
+						<div class="flex">
+							<div class="flex-shrink-0">
+								<svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+									<path
+										fill-rule="evenodd"
+										d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</div>
+							<div class="ml-3">
+								<h3 class="text-sm font-medium text-blue-800">Account Verification Process</h3>
+								<div class="mt-2 text-sm text-blue-700">
+									<ul class="list-disc space-y-1 pl-5">
+										<li>Your registration will be reviewed by our admin team</li>
+										<li>Verification typically takes 1-2 business days</li>
+										<li>Your establishment will be visible to customers after approval</li>
+										<li>You'll receive an email notification once approved</li>
+										<li>Make sure all documents are clear and valid to speed up the process</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="flex items-center justify-between">
+						<div class="flex items-center">
+							<input
+								id="terms"
+								name="terms"
+								type="checkbox"
+								required
+								bind:checked={formData.agreed}
+								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							/>
+							<label for="terms" class="ml-2 block text-sm text-gray-900">
+								I agree to the terms and conditions
+							</label>
+						</div>
+
+						<button
+							type="submit"
+							disabled={isSubmitting || !formData.agreed}
+							class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300"
+						>
+							{isSubmitting ? 'Submitting...' : 'Submit Registration'}
+						</button>
+					</div>
+				</div>
+			</form>
 		</div>
-	</form>
+	</div>
 </main>
-
-<style>
-	:root {
-		--primary-color: #767184;
-		--secondary-color: #d9d9d9;
-		--accent-color: #d9d9d9;
-		--background-color: #d9d9d9;
-		--text-color: #000;
-		--error-color: #e74c3c;
-	}
-
-	main {
-		background-color: #767184;
-		color: var(--text-color);
-		padding: 20px;
-	}
-
-	header {
-		background-color: #767184;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 15px 30px;
-		width: 100%;
-		margin-top: 90px;
-	}
-
-	.navbar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 85px;
-		background-color: #d9d9d9;
-		display: flex;
-		align-items: center;
-		padding-left: 20px;
-		justify-content: space-between;
-		padding-right: 20px;
-		padding-left: 20px;
-		box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-	}
-
-	.navbar .logo img {
-		height: 110px;
-		width: auto;
-	}
-
-	.container {
-		background-color: white;
-		border-radius: 10px;
-		padding: 30px;
-		width: 100%;
-		max-width: 900px;
-		box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-		text-align: center;
-	}
-
-	h1 {
-		font-size: 22px;
-		color: #333;
-		text-align: center;
-		margin-bottom: 15px;
-	}
-
-	h2 {
-		color: #000;
-		text-align: center;
-	}
-	p {
-		font-size: 14px;
-		color: #000;
-		text-align: center;
-		margin-bottom: 25px;
-	}
-
-	form {
-		max-width: 800px;
-		margin: 0 auto;
-		padding: 20px;
-		background-color: #fff;
-		border-radius: 8px;
-		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-	}
-
-	label {
-		display: block;
-		font-weight: bold;
-		margin: 15px 0 5px;
-		color: var(--primary-color);
-	}
-
-	input[type='text'],
-	input[type='email'],
-	input[type='tel'],
-	input[type='file'],
-	select,
-	textarea {
-		width: 100%;
-		padding: 10px;
-		margin-bottom: 15px;
-		border: 1px solid var(--secondary-color);
-		border-radius: 4px;
-		box-sizing: border-box;
-		font-size: 14px;
-	}
-
-	input[type='text']:focus,
-	input[type='email']:focus,
-	input[type='tel']:focus,
-	input[type='file']:focus,
-	select:focus,
-	textarea:focus {
-		border-color: var(--accent-color);
-		outline: none;
-		box-shadow: 0px 0px 5px var(--accent-color);
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	button[type='submit'] {
-		width: 100%;
-		padding: 12px;
-		background-color: var(--primary-color);
-		color: #fff;
-		font-weight: bold;
-		font-size: 16px;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
-	}
-
-	button[type='submit']:hover {
-		background-color: var(--secondary-color);
-	}
-
-	.error-message {
-		color: var(--error-color);
-		font-size: 0.9em;
-		margin-top: -10px;
-		margin-bottom: 10px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.payment-methods {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.payment-option {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.rate-option {
-		margin-bottom: 15px;
-	}
-
-	.rate-input {
-		margin-left: 20px;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.rate-input label {
-		margin-right: 10px;
-	}
-
-	.input-wrapper {
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.input-wrapper .peso-sign {
-		font-size: 18px;
-		color: #888;
-		margin-right: 5px;
-	}
-
-	.rate-input input {
-		width: 120px;
-		padding-left: 20px; /* Padding to make space for the peso sign */
-		font-size: 16px;
-	}
-
-	.rate-input input::placeholder {
-		color: transparent; /* Make the placeholder text invisible */
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.day-option {
-		margin-bottom: 10px;
-	}
-
-	.day-hours {
-		margin-left: 20px;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.day-hours label {
-		margin-right: 10px;
-	}
-
-	.day-hours input {
-		margin-right: 20px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.modal {
-		display: none; /* Hidden by default */
-		position: fixed;
-		z-index: 1;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(0, 0, 0, 0.5); /* Black background with transparency */
-		padding-top: 60px;
-	}
-
-	/* Modal content */
-	.modal-content {
-		background-color: #fff;
-		margin: 5% auto;
-		padding: 20px;
-		border: 1px solid #888;
-		width: 50%;
-		text-align: center;
-	}
-
-	/* Close button */
-	.close {
-		color: #aaa;
-		font-size: 28px;
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	.close:hover,
-	.close:focus {
-		color: black;
-		text-decoration: none;
-		cursor: pointer;
-	}
-
-	button {
-		padding: 10px 20px;
-		background-color: #767184;
-		color: white;
-		border: none;
-		cursor: pointer;
-	}
-
-	button:hover {
-		background-color: #767170;
-	}
-</style>
