@@ -69,6 +69,12 @@ export const actions: Actions = {
 
 			// TODO: Add API call to save data
 			// const response = await axios.post('/api/owners/register', ownerData, { httpsAgent });
+			return {
+				success: true,
+				data: {
+					ownerData
+				}
+			};
 
 			return {
 				success: true,

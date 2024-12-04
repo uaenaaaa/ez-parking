@@ -164,10 +164,10 @@
 		src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 		crossorigin=""
+		defer
 	></script>
 </svelte:head>
 
-<!-- Add the template HTML with reactive bindings -->
 <main class="min-h-screen bg-gray-50">
 	<header class="bg-white shadow">
 		<nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
