@@ -10,7 +10,7 @@
 		middleName: '',
 		lastName: '',
 		suffix: '',
-		businessName: '',
+		companyName: '',
 		companyRegNumber: '',
 		contactNumber: '',
 		email: '',
@@ -42,6 +42,7 @@
 			customAccess: ''
 		},
 		facilities: {
+			accessInformation: '',
 			lighting: '',
 			accessibility: '',
 			nearby: ''
@@ -230,65 +231,64 @@
 							</select>
 						</div>
 
-						{#if formData.ownerType === 'Individual'}
-							<div class="grid gap-6 grid-cols-1 col-span-2 md:grid-cols-2">
-								<div>
-									<label for="firstName" class="block text-sm font-medium text-gray-700"
-										>First Name</label
-									>
-									<input
-										id="firstName"
-										type="text"
-										name="firstName"
-										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<label class="block text-sm font-medium text-gray-700" for="middleName"
-										>Middle Name (optional)</label
-									>
-									<input
-										type="text"
-										id="middleName"
-										name="middleName"
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<label for="lastName" class="block text-sm font-medium text-gray-700"
-										>Last Name</label
-									>
-									<input
-										type="text"
-										id="lastName"
-										name="lastName"
-										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-									/>
-								</div>
-								<div>
-									<label for="suffix" class="block text-sm font-medium text-gray-700"
-										>Suffix (optional)</label
-									>
-									<input
-										id="suffix"
-										type="text"
-										name="suffix"
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-									/>
-								</div>
+						<div class="col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
+							<div>
+								<label for="firstName" class="block text-sm font-medium text-gray-700"
+									>First Name</label
+								>
+								<input
+									id="firstName"
+									type="text"
+									name="firstName"
+									required
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
 							</div>
-						{:else}
-							<div class="space-y-6 col-span-2 grid-cols-1 md:grid-cols-2">
+							<div>
+								<label class="block text-sm font-medium text-gray-700" for="middleName"
+									>Middle Name (optional)</label
+								>
+								<input
+									type="text"
+									id="middleName"
+									name="middleName"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
+							</div>
+							<div>
+								<label for="lastName" class="block text-sm font-medium text-gray-700"
+									>Last Name</label
+								>
+								<input
+									type="text"
+									id="lastName"
+									name="lastName"
+									required
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
+							</div>
+							<div>
+								<label for="suffix" class="block text-sm font-medium text-gray-700"
+									>Suffix (optional)</label
+								>
+								<input
+									id="suffix"
+									type="text"
+									name="suffix"
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								/>
+							</div>
+						</div>
+						{#if formData.ownerType === 'Company'}
+							<div class="col-span-2 grid-cols-1 space-y-6 md:grid-cols-2">
 								<div>
-									<label for="businessName" class="block text-sm font-medium text-gray-700"
-										>Business Name</label
+									<label for="companyName" class="block text-sm font-medium text-gray-700"
+										>Company Name</label
 									>
 									<input
 										type="text"
-										id="businessName"
-										name="businessName"
+										id="companyName"
+										name="companyName"
 										required
 										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 									/>
@@ -308,7 +308,7 @@
 							</div>
 						{/if}
 
-						<div class="grid gap-6 col-span-2 md:grid-cols-2">
+						<div class="col-span-2 grid gap-6 md:grid-cols-2">
 							<div>
 								<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
 								<input
@@ -445,6 +445,33 @@
 					<h3 class="mb-6 text-lg font-medium text-gray-900">Facilities & Amenities</h3>
 
 					<div class="space-y-6">
+						<div class="flex flex-col gap-4">
+							<label for="accessInformation" class="block text-sm font-medium text-gray-700">
+								Access Information (Optional)
+							</label>
+							<select
+								name="accessInformation"
+								id="accessInformation"
+								bind:value={formData.facilities.accessInformation}
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							>
+								<option value="">Select...</option>
+								<option value="Gate Code">Gate Code</option>
+								<option value="Security Check">Security Check</option>
+								<option value="Key Pickup">Key Pickup</option>
+								<option value="No Special Access">No Special Access</option>
+								<option value="Other">Other</option>
+							</select>
+							<input
+								placeholder="Other? (Specify it here)"
+								class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+								type="text"
+								name="customAccess"
+								id="customAccess"
+								bind:value={formData.facilities.customAccess}
+								disabled={formData.facilities.accessInformation !== 'Other'}
+							/>
+						</div>
 						<div>
 							<label for="lighting" class="block text-sm font-medium text-gray-700">
 								Security Features
@@ -566,115 +593,157 @@
 						{/each}
 					</div>
 				</div>
-
 				<div class="rounded-lg bg-white p-6 shadow-sm">
-					<h3 class="mb-6 text-lg font-medium text-gray-900">Required Documents</h3>
+					<h3 class="mb-6 text-lg font-medium text-gray-900">Accepted Payment Methods</h3>
 
 					<div class="space-y-6">
-						{#each Object.entries(formData.files) as [type, file]}
-							<div>
-								<label for="filesUpload" class="block text-sm font-medium text-gray-700">
-									{type
-										.split(/(?=[A-Z])/)
-										.join(' ')
-										.toUpperCase()}
-									{type !== 'parkingPhotos' ? '(PDF or Image)' : '(Images)'}
-								</label>
-								<div
-									class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
-								>
-									<div class="space-y-1 text-center">
-										<svg
-											class="mx-auto h-12 w-12 text-gray-400"
-											stroke="currentColor"
-											fill="none"
-											viewBox="0 0 48 48"
-										>
-											<path
-												d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
-												stroke-width="2"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-											/>
-										</svg>
-										<div class="flex text-sm text-gray-600">
-											<label
-												for={type}
-												class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
-											>
-												<span>Upload a file</span>
-												<input
-													id={type}
-													name={type}
-													type="file"
-													class="sr-only"
-													accept={type === 'parkingPhotos' ? 'image/*' : '.pdf,image/*'}
-													multiple={type === 'parkingPhotos'}
-												/>
-											</label>
-											<p class="pl-1">or drag and drop</p>
-										</div>
-										<p class="text-xs text-gray-500">
-											{type === 'parkingPhotos'
-												? 'PNG, JPG, GIF up to 10MB each'
-												: 'PDF or images up to 10MB'}
-										</p>
-									</div>
-								</div>
-							</div>
-						{/each}
+						<div class="flex items-center space-x-4">
+							<input
+								type="checkbox"
+								id="cash"
+								bind:checked={formData.paymentMethods.cash}
+								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							/>
+							<label for="cash" class="text-sm font-medium text-gray-700">Cash</label>
+						</div>
+						<div class="flex items-center space-x-4">
+							<input
+								type="checkbox"
+								id="mobile"
+								bind:checked={formData.paymentMethods.mobile}
+								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							/>
+							<label for="mobile" class="text-sm font-medium text-gray-700">Mobile Payment</label>
+						</div>
+						<div class="flex items-center space-x-4">
+							<input
+								type="checkbox"
+								id="other"
+								bind:checked={formData.paymentMethods.other}
+								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							/>
+							<label for="other" class="text-sm font-medium text-gray-700">Other</label>
+							<input
+								type="text"
+								id="otherText"
+								bind:value={formData.paymentMethods.otherText}
+								disabled={!formData.paymentMethods.other}
+								class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+							/>
+						</div>
 					</div>
 				</div>
 
-				<div class="space-y-6">
-					<div class="rounded-md bg-blue-50 p-4">
-						<div class="flex">
-							<div class="flex-shrink-0">
-								<svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-									<path
-										fill-rule="evenodd"
-										d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-							</div>
-							<div class="ml-3">
-								<h3 class="text-sm font-medium text-blue-800">Account Verification Process</h3>
-								<div class="mt-2 text-sm text-blue-700">
-									<ul class="list-disc space-y-1 pl-5">
-										<li>Your registration will be reviewed by our admin team</li>
-										<li>Verification typically takes 1-2 business days</li>
-										<li>Your establishment will be visible to customers after approval</li>
-										<li>You'll receive an email notification once approved</li>
-										<li>Make sure all documents are clear and valid to speed up the process</li>
-									</ul>
+				<div class="rounded-lg bg-white p-6 shadow-sm">
+					<div class="rounded-lg bg-white p-6 shadow-sm">
+						<h3 class="mb-6 text-lg font-medium text-gray-900">Required Documents</h3>
+
+						<div class="space-y-6">
+							{#each Object.entries(formData.files) as [type, file]}
+								<div>
+									<label for="filesUpload" class="block text-sm font-medium text-gray-700">
+										{type
+											.split(/(?=[A-Z])/)
+											.join(' ')
+											.toUpperCase()}
+										{type !== 'parkingPhotos' ? '(PDF or Image)' : '(Images)'}
+									</label>
+									<div
+										class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
+									>
+										<div class="space-y-1 text-center">
+											<svg
+												class="mx-auto h-12 w-12 text-gray-400"
+												stroke="currentColor"
+												fill="none"
+												viewBox="0 0 48 48"
+											>
+												<path
+													d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												/>
+											</svg>
+											<div class="flex text-sm text-gray-600">
+												<label
+													for={type}
+													class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+												>
+													<span>Upload a file</span>
+													<input
+														id={type}
+														name={type}
+														type="file"
+														class="sr-only"
+														accept={type === 'parkingPhotos' ? 'image/*' : '.pdf,image/*'}
+														multiple={type === 'parkingPhotos'}
+													/>
+												</label>
+												<p class="pl-1">or drag and drop</p>
+											</div>
+											<p class="text-xs text-gray-500">
+												{type === 'parkingPhotos'
+													? 'PNG, JPG, GIF up to 10MB each'
+													: 'PDF or images up to 10MB'}
+											</p>
+										</div>
+									</div>
 								</div>
-							</div>
+							{/each}
 						</div>
 					</div>
 
-					<div class="flex items-center justify-between">
-						<div class="flex items-center">
-							<input
-								id="terms"
-								name="terms"
-								type="checkbox"
-								required
-								bind:checked={formData.agreed}
-								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-							/>
-							<label for="terms" class="ml-2 block text-sm text-gray-900">
-								I agree to the terms and conditions
-							</label>
+					<div class="space-y-6">
+						<div class="rounded-md bg-blue-50 p-4">
+							<div class="flex">
+								<div class="flex-shrink-0">
+									<svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+										<path
+											fill-rule="evenodd"
+											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+								</div>
+								<div class="ml-3">
+									<h3 class="text-sm font-medium text-blue-800">Account Verification Process</h3>
+									<div class="mt-2 text-sm text-blue-700">
+										<ul class="list-disc space-y-1 pl-5">
+											<li>Your registration will be reviewed by our admin team</li>
+											<li>Verification typically takes 1-2 business days</li>
+											<li>Your establishment will be visible to customers after approval</li>
+											<li>You'll receive an email notification once approved</li>
+											<li>Make sure all documents are clear and valid to speed up the process</li>
+										</ul>
+									</div>
+								</div>
+							</div>
 						</div>
 
-						<button
-							type="submit"
-							disabled={isSubmitting || !formData.agreed}
-							class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300"
-						>
-							{isSubmitting ? 'Submitting...' : 'Submit Registration'}
-						</button>
+						<div class="flex items-center justify-between">
+							<div class="flex items-center">
+								<input
+									id="terms"
+									name="terms"
+									type="checkbox"
+									required
+									bind:checked={formData.agreed}
+									class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+								/>
+								<label for="terms" class="ml-2 block text-sm text-gray-900">
+									I agree to the terms and conditions
+								</label>
+							</div>
+
+							<button
+								type="submit"
+								disabled={isSubmitting || !formData.agreed}
+								class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300"
+							>
+								{isSubmitting ? 'Submitting...' : 'Submit Registration'}
+							</button>
+						</div>
 					</div>
 				</div>
 			</form>

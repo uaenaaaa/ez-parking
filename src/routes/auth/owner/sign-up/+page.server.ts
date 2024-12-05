@@ -11,6 +11,7 @@ export const actions: Actions = {
 
 			// Basic form data
 			const ownerType = formData.get('ownerType') as string;
+			const businessName = formData.get('businessName') as string;
 			const email = formData.get('email') as string;
 			const contactNumber = formData.get('contactNumber') as string;
 			const tin = formData.get('tin') as string;
@@ -41,6 +42,7 @@ export const actions: Actions = {
 			// Structure the data
 			const ownerData = {
 				ownerType,
+				businessName,
 				contact: {
 					email,
 					phone: contactNumber
