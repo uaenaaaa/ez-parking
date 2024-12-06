@@ -15,6 +15,11 @@ import { validatePricing } from '$lib/utils/function/validators/pricing-validato
 export const actions: Actions = {
 	default: async ({ request }) => {
 		try {
+			const formData = await request.formData();
+			const axiosObj = axios.create({
+				baseURL: API_BASE_URL,
+				httpsAgent
+			});
 			const PARKINGSPACETYPE = ['indoor', 'outdoor', 'covered', 'uncovered'];
 			const ACCESSINFORMATION = [
 				'gate_code',
@@ -24,7 +29,11 @@ export const actions: Actions = {
 				'security_check'
 			];
 			const SPACELAYOUT = ['parallel', 'perpendicular', 'angled', 'other'];
-			const formData = await request.formData();
+			const maxFileSize = 5 * 1024 * 1024;
+			const allowedFileTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+			const companyRegNumber = formData.get('companyRegNumber') as string;
+			const companyName = formData.get('companyName') as string;
 
 			// Basic form data
 			const ownerType = formData.get('ownerType') as string;
@@ -32,7 +41,6 @@ export const actions: Actions = {
 			const lastName = formData.get('lastName') as string;
 			const middleName = formData.get('middleName') as string;
 			const suffix = formData.get('suffix') as string;
-			const companyName = formData.get('companyName') as string;
 			const email = formData.get('email') as string;
 			const contactNumber = formData.get('contactNumber') as string;
 			const tin = formData.get('tin') as string;
@@ -47,18 +55,6 @@ export const actions: Actions = {
 			const latitude = formData.get('latitude') as string;
 			const landmarks = formData.get('landmarks') as string;
 
-			// Files validation
-			const govId = formData.get('govId') as File;
-			const parkingPhotos = formData.get('parkingPhotos') as File;
-			const proofOfOwnership = formData.get('proofOfOwnership') as File;
-			const birCert = formData.get('birCert') as File;
-			const liabilityInsurance = formData.get('liabilityInsurance') as File;
-			const businessCert = formData.get('businessCert') as File;
-
-			// Validate required files
-			const maxFileSize = 5 * 1024 * 1024;
-			const allowedFileTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-
 			// Facilities and Amenities
 			const accessInformation = formData.get('accessInformation') as string;
 			const spaceType = formData.get('spaceType') as string;
@@ -71,55 +67,65 @@ export const actions: Actions = {
 			// Operating hours
 			const operatingHours = {
 				monday: {
-					enabled: formData.get('monday.enabled') === 'true',
+					enabled: String(formData.get('monday.enabled')).toLowerCase() === 'true',
 					open: formData.get('monday.open') as string,
 					close: formData.get('monday.close') as string
 				},
 				tuesday: {
-					enabled: formData.get('tuesday.enabled') === 'true',
+					enabled: String(formData.get('tuesday.enabled')).toLowerCase() === 'true',
 					open: formData.get('tuesday.open') as string,
 					close: formData.get('tuesday.close') as string
 				},
 				wednesday: {
-					enabled: formData.get('wednesday.enabled') === 'true',
+					enabled: String(formData.get('wednesday.enabled')).toLowerCase() === 'true',
 					open: formData.get('wednesday.open') as string,
 					close: formData.get('wednesday.close') as string
 				},
 				thursday: {
-					enabled: formData.get('thursday.enabled') === 'true',
+					enabled: String(formData.get('thursday.enabled')).toLowerCase() === 'true',
 					open: formData.get('thursday.open') as string,
 					close: formData.get('thursday.close') as string
 				},
 				friday: {
-					enabled: formData.get('friday.enabled') === 'true',
+					enabled: String(formData.get('friday.enabled')).toLowerCase() === 'true',
 					open: formData.get('friday.open') as string,
 					close: formData.get('friday.close') as string
 				},
 				saturday: {
-					enabled: formData.get('saturday.enabled') === 'true',
+					enabled: String(formData.get('saturday.enabled')).toLowerCase() === 'true',
 					open: formData.get('saturday.open') as string,
 					close: formData.get('saturday.close') as string
 				},
 				sunday: {
-					enabled: formData.get('sunday.enabled') === 'true',
+					enabled: String(formData.get('sunday.enabled')).toLowerCase() === 'true',
 					open: formData.get('sunday.open') as string,
 					close: formData.get('sunday.close') as string
 				}
 			};
+
+			const scheduleErrors = validateSchedule(operatingHours);
+			if (scheduleErrors.length > 0) {
+				return fail(400, {
+					success: false,
+					errors: {
+						schedule: scheduleErrors
+					}
+				});
+			}
 			const cash = formData.get('cash') === 'true';
 			const mobile = formData.get('mobile') === 'true';
 			const otherPayment = formData.get('otherPayment') as string;
 			const pricing = {
 				hourly: {
-					enabled: formData.get('hourly.enabled') === 'true',
+					enabled: String(formData.get('hourly.enabled')).toLowerCase() === 'true',
 					rate: parseFloat(formData.get('hourly.rate') as string)
 				},
 				daily: {
-					enabled: formData.get('daily.enabled') === 'true',
+					enabled: String(formData.get('daily.enabled')).toLowerCase() === 'true',
 					rate: parseFloat(formData.get('daily.rate') as string)
 				},
 				monthly: {
-					enabled: formData.get('monthly.enabled') === 'true',
+					enabled: String(formData.get('monthly.enabled')).toLowerCase() === 'true',
 					rate: parseFloat(formData.get('monthly.rate') as string)
 				}
 			};
@@ -134,6 +140,14 @@ export const actions: Actions = {
 				});
 			}
 
+			// Files validation
+			const govId = formData.get('govId') as File;
+			const parkingPhotos = formData.get('parkingPhotos') as File;
+			const proofOfOwnership = formData.get('proofOfOwnership') as File;
+			const birCert = formData.get('birCert') as File;
+			const liabilityInsurance = formData.get('liabilityInsurance') as File;
+			const businessCert = formData.get('businessCert') as File;
+
 			const filesValid = [govId, parkingPhotos, proofOfOwnership, birCert].every((file) =>
 				validateFile(file, allowedFileTypes[0], maxFileSize)
 			);
@@ -144,78 +158,84 @@ export const actions: Actions = {
 				fail(400, { success: false, error: 'Invalid TIN format' });
 			}
 
-			const scheduleErrors = validateSchedule(operatingHours);
-			if (scheduleErrors.length > 0) {
-				return fail(400, {
-					success: false,
-					errors: {
-						schedule: scheduleErrors
-					}
-				});
-			}
 			const COMMON_REQUEST_BODY = {
 				first_name: firstName,
 				last_name: lastName,
 				middle_name: middleName,
 				suffix: suffix,
 				email,
-				contact_number: contactNumber
-			};
-			if (ownerType == 'individual') {
-				// Request for individual account creation
-				const requestBody = {
-					first_name: firstName,
-					last_name: lastName,
-					middle_name: middleName,
-					suffix: suffix
-				};
-			} else if (ownerType == 'company') {
-				if (companyName === '') {
-					fail(400, { success: false, error: 'Company name is required' });
-				}
-			}
-
-			// Structure the data
-			const ownerData = {
-				ownerType,
-				companyName,
+				contact_number: contactNumber,
 				tin,
-				contact: {
-					email,
-					phone: contactNumber
-				},
-				documents: {
-					govId,
-					parkingPhotos,
-					proofOfOwnership,
-					birCert,
-					liabilityInsurance,
-					businessCert
-				},
-				location: {
-					street: formData.get('streetAddress'),
-					barangay: formData.get('barangay'),
-					city: formData.get('city'),
-					province: formData.get('province'),
-					postalCode: formData.get('postalCode')
-				},
-				parkingDetails: {
-					type: formData.get('spaceType') as string as 'open' | 'covered' | 'underground',
-					layout: formData.get('spaceLayout'),
-					dimensions: formData.get('spaceDimensions'),
-					photos: parkingPhotos
-				}
+				street_address: streetAddress,
+				barangay,
+				city,
+				province,
+				postal_code: postalCode,
+				landmarks,
+				access_information: accessInformation,
+				space_type: spaceType,
+				space_layout: spaceLayout,
+				space_dimensions: spaceDimensions,
+				lighting_and_security: lightingAndSecurity,
+				accessibility,
+				nearby_facilities: nearbyFacilities,
+				operating_hours: operatingHours,
+				cash,
+				mobile,
+				other_payment: otherPayment,
+				pricing,
+				longitude,
+				latitude,
+				document: [
+					{
+						name: 'gov_id',
+						file: govId
+					},
+					{
+						name: 'parking_photos',
+						file: parkingPhotos
+					},
+					{
+						name: 'proof_of_ownership',
+						file: proofOfOwnership
+					},
+					{
+						name: 'bir_cert',
+						file: birCert
+					},
+					{
+						name: 'liability_insurance',
+						file: liabilityInsurance
+					},
+					{
+						name: 'business_cert',
+						file: businessCert
+					}
+				]
 			};
+			const COMPANY_SPECIFIC_REQUEST_BODY = {
+				company_name: companyName,
+				company_registration_number: companyRegNumber
+			}
+			if (ownerType == 'individual') {
+				const response = await axiosObj.post(API_PARKING_MANAGER_INDIVIDUAL_ACCOUNT_CREATE, COMMON_REQUEST_BODY);
+				return {
+					success: true,
+					data: response.data
+				};
 
-			// TODO: Add API call to save data
-			// const response = await axios.post('/api/owners/register', ownerData, { httpsAgent });
-			console.log('Owner data:', ownerData);
-			return {
-				success: true,
-				data: {
-					ownerData
-				}
-			};
+			} else if (ownerType == 'company') {
+				const response = await axiosObj.post(API_PARKING_MANAGER_COMPANY_ACCOUNT_CREATE, {
+					...COMMON_REQUEST_BODY,
+					...COMPANY_SPECIFIC_REQUEST_BODY
+				});
+				return {
+					success: true,
+					data: response.data
+				};
+			} else {
+				return fail(400, { success: false, error: 'Invalid owner type' });
+			}
 		} catch (error) {
 			console.error('Registration error:', error);
 			return {

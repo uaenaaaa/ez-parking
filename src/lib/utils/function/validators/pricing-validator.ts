@@ -11,11 +11,13 @@ export interface PricingValidationError {
 export function validatePricing(pricing: Record<string, PricingConfig>): PricingValidationError[] {
 	const errors: PricingValidationError[] = [];
 
+	// Check if at least one pricing option is enabled
 	const hasEnabledRate = Object.values(pricing).some((config) => config.enabled);
 	if (!hasEnabledRate) {
 		errors.push({
 			message: 'At least one pricing rate must be enabled'
 		});
+		return errors;
 	}
 
 	Object.entries(pricing).forEach(([type, config]) => {
@@ -23,27 +25,26 @@ export function validatePricing(pricing: Record<string, PricingConfig>): Pricing
 			if (!config.rate || config.rate <= 0) {
 				errors.push({
 					type,
-					message: 'Rate must be greater than 0'
+					message: `${type.charAt(0).toUpperCase() + type.slice(1)} rate must be greater than 0`
 				});
-			}
-
-			if (type === 'hourly' && config.rate > 1000) {
-				errors.push({
-					type,
-					message: 'Hourly rate cannot exceed ₱1,000'
-				});
-			}
-			if (type === 'daily' && config.rate > 10000) {
-				errors.push({
-					type,
-					message: 'Daily rate cannot exceed ₱10,000'
-				});
-			}
-			if (type === 'monthly' && config.rate > 50000) {
-				errors.push({
-					type,
-					message: 'Monthly rate cannot exceed ₱50,000'
-				});
+			} else {
+				switch (type) {
+					case 'hourly':
+						if (config.rate > 1000) {
+							errors.push({ type, message: 'Hourly rate cannot exceed ₱1,000' });
+						}
+						break;
+					case 'daily':
+						if (config.rate > 10000) {
+							errors.push({ type, message: 'Daily rate cannot exceed ₱10,000' });
+						}
+						break;
+					case 'monthly':
+						if (config.rate > 50000) {
+							errors.push({ type, message: 'Monthly rate cannot exceed ₱50,000' });
+						}
+						break;
+				}
 			}
 		}
 	});

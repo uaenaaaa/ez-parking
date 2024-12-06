@@ -2,6 +2,20 @@
 	// @ts-nocheck
 	import { enhance } from '$app/forms';
 	import { fade } from 'svelte/transition';
+	import type { ScheduleValidationError } from '$lib/utils/validators/schedule-validator';
+	import type { PricingValidationError } from '$lib/utils/validators/pricing-validator';
+
+	let pricingErrors: PricingValidationError[] = [];
+
+	function getPricingErrorForType(type: string) {
+		return pricingErrors.find((error) => error.type === type);
+	}
+
+	let scheduleErrors: ScheduleValidationError[] = [];
+
+	function getScheduleErrorForDay(day: string) {
+		return scheduleErrors.find((error) => error.day === day);
+	}
 
 	let formData = $state({
 		agreed: false,
@@ -80,7 +94,6 @@
 	});
 
 	$effect(() => {
-		// Initialize map
 		map = L.map('map').setView([formData.location.latitude, formData.location.longitude], 13);
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			maxZoom: 19,
@@ -200,14 +213,21 @@
 				use:enhance={() => {
 					isSubmitting = true;
 					errors = {};
+					scheduleErrors = [];
+					pricingErrors = [];
 
 					return async ({ result }) => {
 						isSubmitting = false;
+						console.log(result);
 						if (result.type === 'success') {
 							// Handle success
-						} else {
-							// Handle errors
-							errors = result.data?.errors || {};
+						} else if (result.type === 'failure') {
+							if (result.data?.errors?.schedule) {
+								scheduleErrors = result.data.errors.schedule;
+							}
+							if (result.data?.errors?.pricing) {
+								pricingErrors = result.data.errors.pricing;
+							}
 						}
 					};
 				}}
@@ -279,7 +299,7 @@
 								/>
 							</div>
 						</div>
-						{#if formData.ownerType === 'Company'}
+						{#if formData.ownerType === 'company'}
 							<div class="col-span-2 grid-cols-1 space-y-6 md:grid-cols-2">
 								<div>
 									<label for="companyName" class="block text-sm font-medium text-gray-700"
@@ -543,7 +563,7 @@
 						</div>
 
 						<div>
-							<label for="lighting" class="block text-sm font-medium text-gray-700">
+							<label for="lightingAndSecurity" class="block text-sm font-medium text-gray-700">
 								Lighting & Security Features
 							</label>
 							<textarea
@@ -597,14 +617,23 @@
 					</div>
 					{#if !formData.parkingDetails.is24Hours}
 						<div class="mt-6 space-y-4">
+							<!-- Add this section for general schedule errors -->
+							{#if scheduleErrors.some((error) => !error.day)}
+								<p class="mb-4 text-sm text-red-600">
+									{scheduleErrors.find((error) => !error.day)?.message}
+								</p>
+							{/if}
 							{#each Object.entries(formData.parkingDetails.operatingHours) as [day, hours]}
 								<div class="flex items-center space-x-4">
 									<div class="w-32">
 										<input
 											type="checkbox"
 											id={`${day}Enabled`}
+											name={`${day}.enabled`}
 											bind:checked={hours.enabled}
-											class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+											value="true"
+											class="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500
+    {getScheduleErrorForDay(day) ? 'border-red-300' : ''}"
 										/>
 										<label for={`${day}Enabled`} class="text-sm font-medium text-gray-700">
 											{day.charAt(0).toUpperCase() + day.slice(1)}
@@ -613,18 +642,25 @@
 									<div class="grid flex-1 grid-cols-2 gap-4">
 										<input
 											type="time"
+											name={`${day}.open`}
 											bind:value={hours.open}
 											disabled={!hours.enabled}
-											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100
+    {getScheduleErrorForDay(day) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}"
 										/>
 										<input
 											type="time"
+											name={`${day}.close`}
 											bind:value={hours.close}
 											disabled={!hours.enabled}
-											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+											class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100
+    {getScheduleErrorForDay(day) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}"
 										/>
 									</div>
 								</div>
+								{#if getScheduleErrorForDay(day)}
+									<p class="mt-1 text-sm text-red-600">{getScheduleErrorForDay(day)?.message}</p>
+								{/if}
 							{/each}
 						</div>
 					{/if}
@@ -637,10 +673,11 @@
 						{#each Object.entries(formData.pricing) as [type, config]}
 							<div class="flex items-center space-x-4">
 								<input
-									name={type}
+									name={`${type}.enabled`}
 									type="checkbox"
 									id={`${type}Enabled`}
 									bind:checked={config.enabled}
+									value="true"
 									class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
 								/>
 								<label for={`${type}Enabled`} class="w-24 text-sm font-medium text-gray-700">
@@ -655,6 +692,7 @@
 										min="0"
 										step="0.01"
 										bind:value={config.rate}
+										name={`${type}.rate`}
 										disabled={!config.enabled}
 										class="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100 sm:text-sm"
 									/>
