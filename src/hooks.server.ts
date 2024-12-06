@@ -10,7 +10,7 @@ type UserRole = 'user' | 'parking_manager' | 'admin';
 
 const ROLE_ROUTES: Record<string, UserRole[]> = {
 	'/parking-manager': ['parking_manager'],
-	'/admin': ['admin'],
+	// '/admin': ['admin'],
 	'/user': ['user']
 };
 
@@ -76,6 +76,7 @@ function getRedirectPath(role: UserRole): string {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const PROTECTED_ENDPOINTS = ['/parking-manager', '/admin', '/user'];
+	// const PROTECTED_ENDPOINTS = ['/parking-manager', '/user'];
 	const cookiesObject = credentialsManager(event.cookies);
 	const authToken = cookiesObject.Authorization;
 	const xsrfToken = cookiesObject['X-CSRF-TOKEN'];

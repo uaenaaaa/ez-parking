@@ -425,6 +425,19 @@
 								class="mt-1 block w-full cursor-not-allowed rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 							/>
 						</div>
+
+						<div class="col-span-2">
+							<label for="landmarks" class="block text-sm font-medium text-gray-700">
+								Landmarks
+							</label>
+							<textarea
+								name="landmarks"
+								id="landmarks"
+								rows="3"
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+								placeholder="e.g., near a mall, beside a church"
+							></textarea>
+						</div>
 					</div>
 
 					<div class="mt-6">
@@ -497,17 +510,16 @@
 								placeholder="Describe accessibility features (ramps, elevators, etc.)"
 							></textarea>
 						</div>
-
 						<div>
-							<label for="nearby" class="block text-sm font-medium text-gray-700">
-								Nearby Establishments
+							<label for="nearbyFacilities" class="block text-sm font-medium text-gray-700">
+								Nearby Facilities
 							</label>
 							<textarea
-								name="nearby"
-								id="nearby"
+								name="nearbyFacilities"
+								id="nearbyFacilities"
 								rows="3"
 								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-								placeholder="List nearby establishments and landmarks"
+								placeholder="e.g., EV charging stations, Restrooms, Elevators"
 							></textarea>
 						</div>
 					</div>
