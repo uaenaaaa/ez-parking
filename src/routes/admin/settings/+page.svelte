@@ -22,6 +22,10 @@
 	let showSuccess = $state(false);
 </script>
 
+<svelte:head>
+    <title>Admin | Account Settings</title>
+</svelte:head>
+
 <div class="min-h-screen bg-gray-50 p-4">
 	<div class="mx-auto max-w-3xl">
 		<div class="mb-6">
