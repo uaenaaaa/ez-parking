@@ -24,7 +24,7 @@
 			landmarks: ''
 		},
 		parkingDetails: {
-			spaceType: 'Indoor',
+			spaceType: 'indoor',
 			spaceLayout: 'parallel',
 			is24Hours: false,
 			customLayout: '',
@@ -38,11 +38,10 @@
 				saturday: { enabled: false, open: '', close: '' },
 				sunday: { enabled: false, open: '', close: '' }
 			},
-			accessInfo: '',
 			customAccess: ''
 		},
 		facilities: {
-			accessInformation: '',
+			accessInformation: 'no_special_access',
 			lighting: '',
 			accessibility: '',
 			nearby: ''
@@ -195,6 +194,7 @@
 			</p>
 
 			<form
+				enctype="multipart/form-data"
 				method="POST"
 				class="mt-12 space-y-12"
 				use:enhance={() => {
@@ -226,8 +226,8 @@
 								name="ownerType"
 								required
 							>
-								<option value="Individual">Individual</option>
-								<option value="Company">Company</option>
+								<option value="individual">Individual</option>
+								<option value="company">Company</option>
 							</select>
 						</div>
 
@@ -468,12 +468,11 @@
 								bind:value={formData.facilities.accessInformation}
 								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 							>
-								<option value="">Select...</option>
-								<option value="Gate Code">Gate Code</option>
-								<option value="Security Check">Security Check</option>
-								<option value="Key Pickup">Key Pickup</option>
-								<option value="No Special Access">No Special Access</option>
-								<option value="Other">Other</option>
+								<option value="gate_code">Gate Code</option>
+								<option value="security_check">Security Check</option>
+								<option value="key_pickup">Key Pickup</option>
+								<option value="no_special_access">No Special Access</option>
+								<option value="other">Other</option>
 							</select>
 							<input
 								placeholder="Other? (Specify it here)"
@@ -485,14 +484,72 @@
 								disabled={formData.facilities.accessInformation !== 'Other'}
 							/>
 						</div>
+
+						<div class="flex flex-col gap-4">
+							<label for="spaceType" class="block text-sm font-medium text-gray-700">
+								Space Type
+							</label>
+							<select
+								name="spaceType"
+								id="spaceType"
+								bind:value={formData.parkingDetails.spaceType}
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							>
+								<option value="indoor">Indoor</option>
+								<option value="outdoor">Outdoor</option>
+								<option value="covered">Covered</option>
+								<option value="uncovered">Uncovered</option>
+							</select>
+						</div>
+
+						<div class="flex flex-col gap-4">
+							<label for="spaceLayout" class="block text-sm font-medium text-gray-700">
+								Space Layout
+							</label>
+							<select
+								name="spaceLayout"
+								id="spaceLayout"
+								bind:value={formData.parkingDetails.spaceLayout}
+								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+							>
+								<option value="parallel">Parallel</option>
+								<option value="perpendicular">Perpendicular</option>
+								<option value="angled">Angled</option>
+								<option value="other">Other</option>
+							</select>
+							<input
+								placeholder="Custom Layout"
+								class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+								type="text"
+								name="otherLayout"
+								id="otherLayout"
+								bind:value={formData.parkingDetails.customLayout}
+								disabled={formData.parkingDetails.spaceLayout !== 'custom'}
+							/>
+						</div>
+
+						<div class="flex flex-col gap-4">
+							<label for="spaceDimensions" class="block text-sm font-medium text-gray-700">
+								Space Dimensions
+							</label>
+							<input
+								placeholder="Dimensions (e.g., 2.5m x 5m)"
+								class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
+								type="text"
+								name="spaceDimensions"
+								id="spaceDimensions"
+								bind:value={formData.parkingDetails.dimensions}
+							/>
+						</div>
+
 						<div>
 							<label for="lighting" class="block text-sm font-medium text-gray-700">
-								Security Features
+								Lighting & Security Features
 							</label>
 							<textarea
-								name="lighting"
+								name="lightingAndSecurity"
 								rows="3"
-								id="lighting"
+								id="lightingAndSecurity"
 								class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 								placeholder="Describe security features (CCTV, guards, lighting, etc.)"
 							></textarea>
@@ -580,6 +637,7 @@
 						{#each Object.entries(formData.pricing) as [type, config]}
 							<div class="flex items-center space-x-4">
 								<input
+									name={type}
 									type="checkbox"
 									id={`${type}Enabled`}
 									bind:checked={config.enabled}
@@ -613,6 +671,7 @@
 							<input
 								type="checkbox"
 								id="cash"
+								name="cash"
 								bind:checked={formData.paymentMethods.cash}
 								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
 							/>
@@ -620,6 +679,7 @@
 						</div>
 						<div class="flex items-center space-x-4">
 							<input
+								name="mobile"
 								type="checkbox"
 								id="mobile"
 								bind:checked={formData.paymentMethods.mobile}
@@ -634,10 +694,11 @@
 								bind:checked={formData.paymentMethods.other}
 								class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
 							/>
-							<label for="other" class="text-sm font-medium text-gray-700">Other</label>
+							<label for="otherPayment" class="text-sm font-medium text-gray-700">Other</label>
 							<input
 								type="text"
-								id="otherText"
+								id="otherPayment"
+								name="otherPayment"
 								bind:value={formData.paymentMethods.otherText}
 								disabled={!formData.paymentMethods.other}
 								class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-100"
@@ -684,6 +745,7 @@
 												>
 													<span>Upload a file</span>
 													<input
+														required
 														id={type}
 														name={type}
 														type="file"
