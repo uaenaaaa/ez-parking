@@ -16,6 +16,7 @@
 			method="post"
 			use:enhance={() => {
 				return async ({ result }) => {
+					console.log(result);
 					if (result.type === 'failure') {
 						errorMessage.innerText = result.data?.message as string;
 					} else {
@@ -26,7 +27,8 @@
 			}}
 		>
 			<input type="text" id="name" name="first-name" placeholder="First Name" required />
-			<input type="text" id="name" name="last-name" placeholder="Last Name" required />
+			<input type="text" id="first-name" name="last-name" placeholder="Last Name" required />
+			<input type="text" id="middle-name" name="middle-name" placeholder="Middle Name" />
 			<input type="email" id="email" name="email" placeholder="Email Address" required />
 			<input
 				type="tel"
