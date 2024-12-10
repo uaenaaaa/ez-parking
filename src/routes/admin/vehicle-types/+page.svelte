@@ -2,10 +2,20 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+	const vehicleTypesList = data.message.data as unknown as {
+		code: string;
+		created_at: string;
+		description: string;
+		is_active: boolean;
+		name: string;
+		size_category: string;
+		updated_at: string;
+		uuid: string;
+		vehicle_type_id: number;
+	}[];
 
 	type SizeCategory = 'SMALL' | 'MEDIUM' | 'LARGE';
 
-	// Static data for demonstration
 	const vehicleTypes = [
 		{
 			vehicle_type_id: 1,
@@ -32,7 +42,7 @@
 	<title>Admin | Vehicle Types</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 p-4 w-full">
+<div class="min-h-screen w-full bg-gray-50 p-4">
 	<div class="mx-auto max-w-7xl">
 		<!-- Header -->
 		<div class="mb-6">
@@ -40,27 +50,26 @@
 			<p class="mt-1 text-sm text-gray-600">Manage vehicle categories and their specifications</p>
 		</div>
 
-		<!-- Vehicle Types Table -->
-		<div class="mt-8 flex flex-col w-full justify-center">
+		<div class="mt-8 flex w-full flex-col justify-center">
 			<div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
 				<div class="inline-block w-full py-2 align-middle">
-					<div class="overflow-hidden rounded-lg shadow-sm ring-1 ring-black ring-opacity-5 w-full">
+					<div class="w-full overflow-hidden rounded-lg shadow-sm ring-1 ring-black ring-opacity-5">
 						<table class="w-full divide-y divide-gray-300">
 							<thead class="bg-gray-50">
 								<tr>
-									<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+									<th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
 										>Code</th
 									>
-									<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+									<th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
 										>Name</th
 									>
-									<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+									<th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
 										>Description</th
 									>
-									<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+									<th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
 										>Size</th
 									>
-									<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+									<th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
 										>Status</th
 									>
 									<th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -69,12 +78,16 @@
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-gray-200 bg-white">
-								{#each vehicleTypes as type}
+								{#each vehicleTypesList as type}
 									<tr>
-										<td class="text-center whitespace-nowrap px-3 py-4 text-sm text-gray-900">{type.code}</td>
-										<td class="text-center whitespace-nowrap px-3 py-4 text-sm text-gray-900">{type.name}</td>
-										<td class="text-center px-3 py-4 text-sm text-gray-500">{type.description}</td>
-										<td class="text-center whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+										<td class="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-900"
+											>{type.code}</td
+										>
+										<td class="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-900"
+											>{type.name}</td
+										>
+										<td class="px-3 py-4 text-center text-sm text-gray-500">{type.description}</td>
+										<td class="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-900">
 											<span
 												class="inline-flex rounded-full px-2 text-xs font-semibold leading-5
                         {type.size_category === 'SMALL'
@@ -86,7 +99,7 @@
 												{type.size_category}
 											</span>
 										</td>
-										<td class="text-center whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+										<td class="whitespace-nowrap px-3 py-4 text-center text-sm text-gray-500">
 											<span
 												class={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
 													type.is_active
@@ -98,7 +111,7 @@
 											</span>
 										</td>
 										<td
-											class="relative text-center whitespace-nowrap py-4 pl-3 pr-4 text-sm font-medium sm:pr-6"
+											class="relative whitespace-nowrap py-4 pl-3 pr-4 text-center text-sm font-medium sm:pr-6"
 										>
 											<button class="text-indigo-600 hover:text-indigo-900">Edit</button>
 										</td>

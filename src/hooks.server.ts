@@ -3,6 +3,7 @@ import { redirect } from '@sveltejs/kit';
 import axios from 'axios';
 import { httpsAgent } from '$lib/server/http-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
+// import { API_BASE_URL, API_AUTH_ROOT, API_VERIFY_JWT_TOKEN } from '$env/static/private';
 
 axios.defaults.withCredentials = true;
 
@@ -10,11 +11,11 @@ type UserRole = 'user' | 'parking_manager' | 'admin';
 
 const ROLE_ROUTES: Record<string, UserRole[]> = {
 	'/parking-manager': ['parking_manager'],
-	// '/admin': ['admin'],
+	'/admin': ['admin'],
 	'/user': ['user']
 };
 
-const verifyTokenUrl = 'https://localhost:5000/api/v1/auth/verify-token';
+const verifyTokenUrl = 'https://127.0.0.1:5000/api/v1/auth/verify-token';
 
 function matchesPattern(path: string, pattern: string): boolean {
 	const normalizedPath = path.replace(/\/$/, '');
@@ -55,6 +56,7 @@ async function verifyAndGetRole(
 				httpsAgent
 			}
 		);
+		console.log(result);
 		return result.data.role as UserRole;
 	} catch {
 		return null;
@@ -114,6 +116,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		csrf_refresh_token,
 		refresh_token_cookie
 	);
+	console.log(userRole);
 	if (!userRole) {
 		throw redirect(303, '/');
 	}
