@@ -1,19 +1,18 @@
 export default function validateFile(
-	files: File,
-	expectedFileType: string,
-	maxFileSize: number
+    file: File | null,
+    allowedTypes: string[],
+    maxFileSize: number
 ): boolean {
-	if (files.size > maxFileSize) {
-		return false;
-	}
+    if (!file) return false;
 
-	if (files.type !== expectedFileType) {
-		return false;
-	}
+    if (file.size > maxFileSize) {
+        return false;
+    }
 
-	if (files.name === '') {
-		return false;
-	}
+    // Check file type
+    if (!allowedTypes.includes(file.type)) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
