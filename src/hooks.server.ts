@@ -1,11 +1,9 @@
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
-import axios from 'axios';
+import axiosInstance from '$lib/utils/function/validators/axios-config';
 import { httpsAgent } from '$lib/server/http-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
-// import { API_BASE_URL, API_AUTH_ROOT, API_VERIFY_JWT_TOKEN } from '$env/static/private';
-
-axios.defaults.withCredentials = true;
+import { API_AUTH_ROOT, API_VERIFY_JWT_TOKEN } from '$env/static/private';
 
 type UserRole = 'user' | 'parking_manager' | 'admin';
 
@@ -14,8 +12,6 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
 	'/admin': ['admin'],
 	'/user': ['user']
 };
-
-const verifyTokenUrl = 'https://127.0.0.1:5000/api/v1/auth/verify-token';
 
 function matchesPattern(path: string, pattern: string): boolean {
 	const normalizedPath = path.replace(/\/$/, '');
@@ -42,8 +38,8 @@ async function verifyAndGetRole(
 	if (!authToken) return null;
 
 	try {
-		const result = await axios.post(
-			verifyTokenUrl,
+		const result = await axiosInstance.post(
+			`${API_AUTH_ROOT}${API_VERIFY_JWT_TOKEN}`,
 			{},
 			{
 				headers: {

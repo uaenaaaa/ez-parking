@@ -21,8 +21,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			}
 		}
 	);
-	console.log(response);
-
 	return {
 		success: true,
 		message: response.data
