@@ -1,17 +1,23 @@
 <script lang="ts">
-	// @ts-nocheck
 	import { enhance } from '$app/forms';
 	import { fade } from 'svelte/transition';
 	import type { ScheduleValidationError } from '$lib/utils/validators/schedule-validator';
 	import type { PricingValidationError } from '$lib/utils/validators/pricing-validator';
 
+	interface FileState {
+		file: File | null;
+		preview?: string;
+		name: string;
+		type: string;
+	}
+
 	let pricingErrors: PricingValidationError[] = [];
+	let fileStates: Record<string, FileState> = $state({});
+	let scheduleErrors: ScheduleValidationError[] = $state([]);
 
 	function getPricingErrorForType(type: string) {
 		return pricingErrors.find((error) => error.type === type);
 	}
-
-	let scheduleErrors: ScheduleValidationError[] = [];
 
 	function getScheduleErrorForDay(day: string) {
 		return scheduleErrors.find((error) => error.day === day);
@@ -56,6 +62,7 @@
 		},
 		facilities: {
 			accessInformation: 'no_special_access',
+			customAccess: '',
 			lighting: '',
 			accessibility: '',
 			nearby: ''
@@ -137,6 +144,43 @@
 		}
 
 		map.setView([lat, lng], map.getZoom());
+	}
+
+	function handleFileSelect(event: Event, type: string) {
+		const input = event.target as HTMLInputElement;
+		const files = input.files;
+
+		if (!files?.length) return;
+
+		if (type === 'parkingPhotos') {
+			const filesArray = Array.from(files);
+			fileStates[type] = {
+				file: filesArray[0],
+				preview: URL.createObjectURL(filesArray[0]),
+				name: `${filesArray.length} files selected`,
+				type: 'image/*'
+			};
+		} else {
+			const file = files[0];
+			fileStates[type] = {
+				file,
+				preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+				name: file.name,
+				type: file.type
+			};
+		}
+		fileStates = { ...fileStates };
+	}
+
+	function removeFile(type: string) {
+		if (fileStates[type]?.preview) {
+			URL.revokeObjectURL(fileStates[type].preview);
+		}
+		delete fileStates[type];
+		fileStates = { ...fileStates };
+
+		const input = document.getElementById(type) as HTMLInputElement;
+		if (input) input.value = '';
 	}
 
 	async function searchLocation() {
@@ -246,59 +290,11 @@
 								name="ownerType"
 								required
 							>
-								<option value="individual">Individual</option>
+								<option selected value="individual">Individual</option>
 								<option value="company">Company</option>
 							</select>
 						</div>
 
-						<div class="col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
-							<div>
-								<label for="firstName" class="block text-sm font-medium text-gray-700"
-									>First Name</label
-								>
-								<input
-									id="firstName"
-									type="text"
-									name="firstName"
-									required
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-								/>
-							</div>
-							<div>
-								<label class="block text-sm font-medium text-gray-700" for="middleName"
-									>Middle Name (optional)</label
-								>
-								<input
-									type="text"
-									id="middleName"
-									name="middleName"
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-								/>
-							</div>
-							<div>
-								<label for="lastName" class="block text-sm font-medium text-gray-700"
-									>Last Name</label
-								>
-								<input
-									type="text"
-									id="lastName"
-									name="lastName"
-									required
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-								/>
-							</div>
-							<div>
-								<label for="suffix" class="block text-sm font-medium text-gray-700"
-									>Suffix (optional)</label
-								>
-								<input
-									id="suffix"
-									type="text"
-									name="suffix"
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-								/>
-							</div>
-						</div>
 						{#if formData.ownerType === 'company'}
 							<div class="col-span-2 grid-cols-1 space-y-6 md:grid-cols-2">
 								<div>
@@ -322,6 +318,55 @@
 										type="text"
 										name="companyRegNumber"
 										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+							</div>
+						{:else}
+							<div class="col-span-2 grid grid-cols-1 gap-6 md:grid-cols-2">
+								<div>
+									<label for="firstName" class="block text-sm font-medium text-gray-700"
+										>First Name</label
+									>
+									<input
+										id="firstName"
+										type="text"
+										name="firstName"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label class="block text-sm font-medium text-gray-700" for="middleName"
+										>Middle Name (optional)</label
+									>
+									<input
+										type="text"
+										id="middleName"
+										name="middleName"
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label for="lastName" class="block text-sm font-medium text-gray-700"
+										>Last Name</label
+									>
+									<input
+										type="text"
+										id="lastName"
+										name="lastName"
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+									/>
+								</div>
+								<div>
+									<label for="suffix" class="block text-sm font-medium text-gray-700"
+										>Suffix (optional)</label
+									>
+									<input
+										id="suffix"
+										type="text"
+										name="suffix"
 										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 									/>
 								</div>
@@ -759,48 +804,90 @@
 											.toUpperCase()}
 										{type !== 'parkingPhotos' ? '(PDF or Image)' : '(Images)'}
 									</label>
-									<div
-										class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
-									>
-										<div class="space-y-1 text-center">
-											<svg
-												class="mx-auto h-12 w-12 text-gray-400"
-												stroke="currentColor"
-												fill="none"
-												viewBox="0 0 48 48"
-											>
-												<path
-													d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
-													stroke-width="2"
-													stroke-linecap="round"
-													stroke-linejoin="round"
-												/>
-											</svg>
-											<div class="flex text-sm text-gray-600">
-												<label
-													for={type}
-													class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+
+									{#if fileStates[type]}
+										<div class="mt-1 rounded-md border border-gray-300 p-4">
+											<div class="flex items-center justify-between">
+												<div class="flex items-center space-x-4">
+													{#if fileStates[type].preview}
+														<img
+															src={fileStates[type].preview}
+															alt="Preview"
+															class="h-16 w-16 rounded object-cover"
+														/>
+													{:else}
+														<svg
+															class="h-16 w-16 text-gray-400"
+															fill="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-4 4 4h-3v4h-2z"
+															/>
+														</svg>
+													{/if}
+													<div>
+														<p class="font-medium text-gray-900">{fileStates[type].name}</p>
+														<p class="text-sm text-gray-500">
+															{type === 'parkingPhotos' ? 'Multiple files' : fileStates[type].type}
+														</p>
+													</div>
+												</div>
+												<button
+													type="button"
+													class="text-red-600 hover:text-red-800"
+													onclick={() => removeFile(type)}
 												>
-													<span>Upload a file</span>
-													<input
-														required
-														id={type}
-														name={type}
-														type="file"
-														class="sr-only"
-														accept={type === 'parkingPhotos' ? 'image/*' : '.pdf,image/*'}
-														multiple={type === 'parkingPhotos'}
-													/>
-												</label>
-												<p class="pl-1">or drag and drop</p>
+													Remove
+												</button>
 											</div>
-											<p class="text-xs text-gray-500">
-												{type === 'parkingPhotos'
-													? 'PNG, JPG, GIF up to 10MB each'
-													: 'PDF or images up to 10MB'}
-											</p>
 										</div>
-									</div>
+									{:else}
+										<!-- Upload state -->
+										<div
+											class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
+										>
+											<div class="space-y-1 text-center">
+												<svg
+													class="mx-auto h-12 w-12 text-gray-400"
+													stroke="currentColor"
+													fill="none"
+													viewBox="0 0 48 48"
+												>
+													<path
+														d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
+														stroke-width="2"
+														stroke-linecap="round"
+														stroke-linejoin="round"
+													/>
+												</svg>
+												<div class="flex text-sm text-gray-600">
+													<label
+														for={type}
+														class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+													>
+														<span>Upload a file</span>
+														<input
+															required
+															id={type}
+															name={type}
+															type="file"
+															class="sr-only"
+															accept={type === 'parkingPhotos' ? 'image/*' : '.pdf,image/*'}
+															multiple={type === 'parkingPhotos'}
+															onchange={(e) => handleFileSelect(e, type)}
+														/>
+													</label>
+													<p class="pl-1">or drag and drop</p>
+												</div>
+												<p class="text-xs text-gray-500">
+													{type === 'parkingPhotos'
+														? 'PNG, JPG, GIF up to 10MB each'
+														: 'PDF or images up to 10MB'}
+												</p>
+											</div>
+										</div>
+									{/if}
 								</div>
 							{/each}
 						</div>
@@ -834,7 +921,8 @@
 						</div>
 
 						<div class="flex items-center justify-between">
-							<div class="flex items-center">
+							<div class="flex items-start flex-col gap-4">
+								<div class="flex flex-row items-center">
 								<input
 									id="terms"
 									name="terms"
@@ -846,6 +934,19 @@
 								<label for="terms" class="ml-2 block text-sm text-gray-900">
 									I agree to the terms and conditions
 								</label>
+								</div>
+								<div class="flex flex-row items-center">
+								<input
+									type="checkbox"
+									id="zoningCompliance"
+									name="zoningCompliance"
+									bind:checked={formData.zoningCompliance}
+									class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+								/>
+								<label for="zoningCompliance" class="ml-2 block text-sm text-gray-900">
+									I certify that my parking facility complies with local zoning laws
+								</label>
+							</div>
 							</div>
 
 							<button
