@@ -98,6 +98,7 @@
 						loggingIn = true;
 						localStorage.setItem('rememberMe', rememberMe.toString());
 						return async ({ result }) => {
+							console.log(result);
 							if (result.type === 'success') {
 								showOtpForm = true;
 								startTimer();

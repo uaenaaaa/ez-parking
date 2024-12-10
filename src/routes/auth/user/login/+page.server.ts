@@ -17,7 +17,8 @@ export const actions: Actions = {
 			const response = await axios.post(
 				`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_LOGIN}`,
 				{
-					email: data.get('email') as string
+					email: data.get('email') as string,
+					role: 'user'
 				},
 				{ withCredentials: true, httpsAgent }
 			);
@@ -65,8 +66,7 @@ export const actions: Actions = {
 			}
 			const role: 'parking_manager' | 'user' | 'admin' = response.data.role;
 			return { role };
-		} catch (error) {
-			console.error('OTP verification failed:', error);
+		} catch {
 			return fail(500, {
 				success: false,
 				message: 'Server error occurred'
