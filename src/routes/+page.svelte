@@ -16,7 +16,7 @@
 							>Login</a
 						>
 						<a
-							href="/auth/owner/login"
+							href="/auth/owner/sign-up"
 							class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-700 text-white"
 						>
 							For Parking Owners
