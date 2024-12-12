@@ -37,7 +37,7 @@ export const actions: Actions = {
 
 			const response = axios.post(
 				`${API_BASE_URL}${API_USER_AUTH_ROOT}${API_AUTH_CREATE_ACCOUNT}`,
-				{
+				{ user: {
 					email: userEmail,
 					first_name: firstName,
 					last_name: lastName,
@@ -45,11 +45,11 @@ export const actions: Actions = {
 					phone_number: phone as string,
 					plate_number: plateNumber,
 					nickname: nickname
+				}
 				},
 				{ withCredentials: true, httpsAgent }
 			);
 			email.set(data.get('email') as string);
-			console.log(await response);
 			return (await response).data;
 		} catch (error) {
 			console.log(error);
