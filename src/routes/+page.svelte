@@ -12,7 +12,7 @@
 					</div>
 					<div class="flex items-center space-x-4">
 						<a href="/about" class="text-sm font-medium">About Us</a>
-						<a href="/auth/user/login" class="text-sm font-medium"
+						<a href="/auth/login" class="text-sm font-medium"
 							>Login</a
 						>
 						<a

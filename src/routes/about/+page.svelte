@@ -9,7 +9,7 @@
 			<button>
 				<a href="auth/owner/login">For Parking Owners</a>
 			</button>
-			<button><a href="/auth/sign-up">Login/Sign Up</a></button>
+			<button><a href="/auth/user/sign-up">User Login</a></button>
 		</div>
 	</nav>
 
