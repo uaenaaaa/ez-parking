@@ -105,7 +105,7 @@
 				{#if slotInfo.slot.slot_info.status === 'open'}
 					<div class="rounded-lg bg-white p-6 shadow-sm">
 						<a
-							href="/auth/user/login?next={encodeURIComponent(
+							href="/auth/login?next={encodeURIComponent(
 								`/user/book/${slotInfo.slot.establishment_info.uuid}/${slotInfo.slot.slot_info.slot_code}`
 							)}"
 							class="block w-full rounded-md bg-green-600 px-4 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"

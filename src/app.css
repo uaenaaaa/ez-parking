@@ -24,3 +24,10 @@
 .card {
 	@apply rounded-lg bg-white p-6 shadow-md;
 }
+
+/*  Hide the arrow on input[type="number"] */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}

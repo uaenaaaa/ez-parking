@@ -1,10 +1,9 @@
 import type { Handle } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
-import axios from 'axios';
+import axiosInstance from '$lib/utils/function/validators/axios-config';
 import { httpsAgent } from '$lib/server/http-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
-
-axios.defaults.withCredentials = true;
+import { API_AUTH_ROOT, API_VERIFY_JWT_TOKEN } from '$env/static/private';
 
 type UserRole = 'user' | 'parking_manager' | 'admin';
 
@@ -13,8 +12,6 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
 	'/admin': ['admin'],
 	'/user': ['user']
 };
-
-const verifyTokenUrl = 'https://localhost:5000/api/v1/auth/verify-token';
 
 function matchesPattern(path: string, pattern: string): boolean {
 	const normalizedPath = path.replace(/\/$/, '');
@@ -41,8 +38,8 @@ async function verifyAndGetRole(
 	if (!authToken) return null;
 
 	try {
-		const result = await axios.post(
-			verifyTokenUrl,
+		const result = await axiosInstance.post(
+			`${API_AUTH_ROOT}${API_VERIFY_JWT_TOKEN}`,
 			{},
 			{
 				headers: {
@@ -55,6 +52,7 @@ async function verifyAndGetRole(
 				httpsAgent
 			}
 		);
+		console.log(result);
 		return result.data.role as UserRole;
 	} catch {
 		return null;
@@ -76,6 +74,7 @@ function getRedirectPath(role: UserRole): string {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const PROTECTED_ENDPOINTS = ['/parking-manager', '/admin', '/user'];
+	// const PROTECTED_ENDPOINTS = ['/parking-manager', '/user'];
 	const cookiesObject = credentialsManager(event.cookies);
 	const authToken = cookiesObject.Authorization;
 	const xsrfToken = cookiesObject['X-CSRF-TOKEN'];
@@ -113,6 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		csrf_refresh_token,
 		refresh_token_cookie
 	);
+	console.log(userRole);
 	if (!userRole) {
 		throw redirect(303, '/');
 	}

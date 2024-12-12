@@ -1,782 +1,335 @@
-<script>
-	$effect(() => {
-		document.getElementById('accessInfo').addEventListener('change', function () {
-			var customInput = document.getElementById('customAccessInfo');
+<script lang="ts">
+    import { enhance } from '$app/forms';
+    import { fade } from 'svelte/transition';
+    import PaymentMethodCard from './PaymentMethodCard.svelte';
+    import FacilitiesAndAmenities from './FacilitiesAndAmenities.svelte';
+    import ParkingLocationCard from './ParkingLocationCard.svelte';
+    import PricingStructureCard from './PricingStructureCard.svelte';
+    import OperatingHours from './OperatingHours.svelte';
+    import OwnerInformationCard from './OwnerInformationCard.svelte';
+    import NoticeSection from './NoticeSection.svelte';
+    import { goto } from '$app/navigation';
 
-			// If "Other" is selected, show the text box for custom input
-			if (this.value === 'Other') {
-				customInput.classList.remove('hidden');
-			} else {
-				customInput.classList.add('hidden');
-			}
-		});
+    interface FileState {
+        file: File | null;
+        preview?: string;
+        name: string;
+        type: string;
+    }
 
-		document.querySelectorAll('.enable-day').forEach((checkbox) => {
-			checkbox.addEventListener('change', function () {
-				const day = this.getAttribute('data-day');
-				const dayHours = document.getElementById(`${day.toLowerCase()}-hours`);
-				dayHours.classList.toggle('hidden', !this.checked);
-			});
-		});
+    // let pricingErrors: PricingValidationError[] = [];
+    let fileStates: Record<string, FileState> = $state({});
+    // let scheduleErrors: ScheduleValidationError[] = $state([]);
+    let zoningCompliance = $state(false);
+    let isSubmitting = $state(false);
+    let agreed = $state(false);
+    interface Documents {
+        govId: File | null;
+        parkingPhotos: File[] | null;
+        proofOfOwnership: File | null;
+        businessCert: File | null;
+        birCert: File | null;
+        liabilityInsurance: File | null;
+    }
 
-		// JavaScript to toggle rate input based on the checkbox
-		document.querySelectorAll('.enable-rate').forEach((checkbox) => {
-			checkbox.addEventListener('change', function () {
-				const rate = this.getAttribute('data-rate');
-				const rateInput = document.getElementById(`${rate}-rate`);
-				rateInput.classList.toggle('hidden', !this.checked);
-			});
-		});
+    // Update state declaration with type
+    let documents = $state<Documents>({
+        govId: null,
+        parkingPhotos: [],
+        proofOfOwnership: null,
+        businessCert: null,
+        birCert: null,
+        liabilityInsurance: null
+    });
 
-		// Show text input if "Other" option is selected
-		document.getElementById('otherPayment').addEventListener('change', function () {
-			const otherTextInput = document.getElementById('otherPaymentText');
-			otherTextInput.classList.toggle('hidden', !this.checked);
-		});
+    function handleFileSelect(event: Event, type: string) {
+        const input = event.target as HTMLInputElement;
+        const files = input.files;
 
-		// Get the modal and button elements
-		var modal = document.getElementById('verifyModal');
-		var registerButton = document.getElementById('registerButton');
-		var okButton = document.getElementById('okButton');
+        if (!files?.length) return;
 
-		// When the user clicks the Register button, show the modal
-		registerButton.onclick = function () {
-			modal.style.display = 'block';
-		};
+        if (type === 'parkingPhotos') {
+            const filesArray = Array.from(files);
+            fileStates[type] = {
+                file: filesArray[0],
+                preview: URL.createObjectURL(filesArray[0]),
+                name: `${filesArray.length} files selected`,
+                type: 'image/*'
+            };
+            documents[type] = filesArray;
+        } else {
+            const file = files[0];
+            fileStates[type] = {
+                file,
+                preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+                name: file.name,
+                type: file.type
+            };
+            documents[type] = file;
+        }
 
-		// When the user clicks "OK", redirect to vemail.html
-		okButton.onclick = function () {
-			window.location.href = 'vemail.html'; // Redirect to vemail.html
-		};
+        fileStates = { ...fileStates };
+        documents = { ...documents };
+    }
 
-		// Close the modal if the user clicks anywhere outside of it
-		window.onclick = function (event) {
-			if (event.target == modal) {
-				modal.style.display = 'none';
-			}
-		};
+    function removeFile(type: string) {
+        if (fileStates[type]?.preview) {
+            URL.revokeObjectURL(fileStates[type].preview);
+        }
+        delete fileStates[type];
+        fileStates = { ...fileStates };
 
-		// JavaScript for Conditional Display
-		document.getElementById('ownerType').addEventListener('change', function () {
-			const ownerType = this.value;
-			document
-				.getElementById('individualFields')
-				.classList.toggle('hidden', ownerType !== 'Individual');
-			document.getElementById('companyFields').classList.toggle('hidden', ownerType !== 'Company');
-			document.getElementById('businessCert').classList.toggle('hidden', ownerType !== 'Company');
-		});
-
-		const spaceLayoutSelect = document.getElementById('spaceLayout');
-		const otherLayoutInput = document.getElementById('otherSpaceLayout');
-		const otherLayoutLabel = document.getElementById('otherLayoutLabel');
-
-		spaceLayoutSelect.addEventListener('change', function () {
-			if (spaceLayoutSelect.value === 'other') {
-				otherLayoutInput.classList.remove('hidden');
-				otherLayoutLabel.classList.remove('hidden');
-			} else {
-				otherLayoutInput.classList.add('hidden');
-				otherLayoutLabel.classList.add('hidden');
-			}
-		});
-	});
+        const input = document.getElementById(type) as HTMLInputElement;
+        if (input) input.value = '';
+    }
 </script>
 
 <svelte:head>
-	<title>Owner Sign Up | EZ Parking</title>
+    <title>Owner Sign Up | EZ Parking</title>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+        defer
+    ></script>
 </svelte:head>
 
-<main>
-	<header>
-		<nav class="navbar">
-			<div class="logo">
-				<a href="/"><img src="../../logo.png" alt="EZParking Logo" /></a>
-			</div>
-			<a href="/auth/owner/login"> Login Instead </a>
-		</nav>
-	</header>
+<main class="min-h-screen bg-gray-50">
+    <header class="bg-white shadow">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
+            <div class="flex lg:flex-1">
+                <a href="/" class="-m-1.5 p-1.5">
+                    <img src="/logo.png" alt="EZ Parking" class="h-10 w-auto" />
+                </a>
+            </div>
+            <div class="flex lg:flex-1 lg:justify-end">
+                <a href="/auth/owner/login" class="text-sm font-semibold leading-6 text-gray-900">
+                    Login Instead <span aria-hidden="true">&rarr;</span>
+                </a>
+            </div>
+        </nav>
+    </header>
 
-	<h2>Hi Parking Owners! This is your Sign Up Form.</h2>
-	<p>Please fill in your contact information to register your journey with us.</p>
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl">
+            <h1 class="text-center text-3xl font-bold tracking-tight text-gray-900">
+                Parking Owner Registration
+            </h1>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Please fill in your details to register your parking facility
+            </p>
 
-	<form id="registrationForm">
-		<!-- Owner Type Selection -->
-		<label for="ownerType">Owner Type:</label>
-		<select id="ownerType" name="ownerType" required>
-			<option value="">Select...</option>
-			<option value="Individual">Individual</option>
-			<option value="Company">Company</option>
-		</select>
-		<br /><br />
+            <form
+                enctype="multipart/form-data"
+                method="POST"
+                class="mt-12 space-y-12"
+                use:enhance={({ formData }) => {
+                    isSubmitting = true;
 
-		<!-- Individual Owner Fields -->
-		<div id="individualFields" class="hidden">
-			<label for="firstName">First Name:</label>
-			<input type="text" id="firstName" name="firstName" required />
-			<br /><br />
+                    Object.entries(documents).forEach(([type, file]) => {
+                        if (type === 'parkingPhotos' && Array.isArray(file)) {
+                            file.forEach((f: File) => {
+                                formData.append(`${type}`, f);
+                            });
+                        } else if (file instanceof File) {
+                            formData.append(type, file);
+                        }
+                    });
 
-			<label for="middleName">Middle Name (optional):</label>
-			<input type="text" id="middleName" name="middleName" />
-			<br /><br />
+                    return async ({ result }) => {
+                        isSubmitting = false;
+                        if (result.type === 'failure') {
+                            alert(result.data?.message);
+                        }
+                        else if (result.type === 'error') {
+                            alert('An error occurred. Please try again later.');
+                        }
+                        else {
+                            alert('Registration successful!');
+                            goto('/auth/success');
+                        }
+                    };
+                }}
+            >
+                <OwnerInformationCard />
 
-			<label for="lastName">Last Name:</label>
-			<input type="text" id="lastName" name="lastName" required />
-			<br /><br />
+                <ParkingLocationCard />
 
-			<label for="suffix">Suffix (optional):</label>
-			<input type="text" id="suffix" name="suffix" />
-			<br /><br />
-		</div>
+                <FacilitiesAndAmenities />
 
-		<!-- Company Owner Fields -->
-		<div id="companyFields" class="hidden">
-			<label for="businessName">Business Name:</label>
-			<input type="text" id="businessName" name="businessName" required />
-			<br /><br />
+                <OperatingHours />
 
-			<label for="companyRegNumber">Company Registration Number:</label>
-			<input type="text" id="companyRegNumber" name="companyRegNumber" />
-			<br /><br />
-		</div>
+                <PricingStructureCard />
 
-		<!-- Contact Information -->
-		<label for="contactNumber">Contact Number:</label>
-		<input type="tel" id="contactNumber" name="contactNumber" required />
-		<br /><br />
+                <PaymentMethodCard />
 
-		<label for="email">Email:</label>
-		<input type="email" id="email" name="email" required />
-		<br /><br />
+                <div class="rounded-lg bg-white p-6 shadow-sm">
+                    <div class="rounded-lg bg-white p-6 shadow-sm">
+                        <h3 class="mb-6 text-lg font-medium text-gray-900">Required Documents</h3>
 
-		<!-- TIN and Government ID Upload -->
-		<label for="tin">Tax Identification Number (TIN):</label>
-		<input type="text" id="tin" name="tin" required />
-		<br /><br />
+                        <div class="space-y-6">
+                            {#each Object.entries(documents) as [type, file]}
+                                <div>
+                                    <label
+                                        for="filesUpload"
+                                        class="block text-sm font-medium text-gray-700"
+                                    >
+                                        {type
+                                            .split(/(?=[A-Z])/)
+                                            .join(' ')
+                                            .toUpperCase()}
+                                        {type !== 'parkingPhotos' ? '(PDF or Image)' : '(Images)'}
+                                    </label>
 
-		<label for="govIdUpload">Upload Government ID (for verification):</label>
-		<input
-			type="file"
-			id="govIdUpload"
-			name="govIdUpload"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
+                                    {#if fileStates[type]}
+                                        <div class="mt-1 rounded-md border border-gray-300 p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-4">
+                                                    {#if fileStates[type].preview}
+                                                        <img
+                                                            src={fileStates[type].preview}
+                                                            alt="Preview"
+                                                            class="h-16 w-16 rounded object-cover"
+                                                        />
+                                                    {:else}
+                                                        <svg
+                                                            class="h-16 w-16 text-gray-400"
+                                                            fill="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-4 4 4h-3v4h-2z"
+                                                            />
+                                                        </svg>
+                                                    {/if}
+                                                    <div>
+                                                        <p class="font-medium text-gray-900">
+                                                            {fileStates[type].name}
+                                                        </p>
+                                                        <p class="text-sm text-gray-500">
+                                                            {type === 'parkingPhotos'
+                                                                ? 'Multiple files'
+                                                                : fileStates[type].type}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="text-red-600 hover:text-red-800"
+                                                    onclick={() => removeFile(type)}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {:else}
+                                        <div
+                                            class="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
+                                        >
+                                            <div class="space-y-1 text-center">
+                                                <svg
+                                                    class="mx-auto h-12 w-12 text-gray-400"
+                                                    stroke="currentColor"
+                                                    fill="none"
+                                                    viewBox="0 0 48 48"
+                                                >
+                                                    <path
+                                                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4-4m4-4h8m-4-4v8m-12 4h.02"
+                                                        stroke-width="2"
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
+                                                <div class="flex text-sm text-gray-600">
+                                                    <label
+                                                        for={type}
+                                                        class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+                                                    >
+                                                        <span>Upload a file</span>
+                                                        <input
+                                                            required
+                                                            id={type}
+                                                            name={type}
+                                                            type="file"
+                                                            class="sr-only"
+                                                            accept={type === 'parkingPhotos'
+                                                                ? 'image/*'
+                                                                : '.pdf,image/*'}
+                                                            multiple={type === 'parkingPhotos'}
+                                                            onchange={(e) =>
+                                                                handleFileSelect(e, type)}
+                                                        />
+                                                    </label>
+                                                    <p class="pl-1">or drag and drop</p>
+                                                </div>
+                                                <p class="text-xs text-gray-500">
+                                                    {type === 'parkingPhotos'
+                                                        ? 'PNG, JPG, GIF up to 10MB each'
+                                                        : 'PDF or images up to 10MB'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
 
-		<!-- Parking Location Details -->
-		<h3>Parking Location Details</h3>
+                    <div class="space-y-6">
+                        <NoticeSection />
 
-		<label for="streetAddress">Street Address:</label>
-		<input type="text" id="streetAddress" name="streetAddress" required />
-		<br /><br />
+                        <div class="flex items-center justify-between">
+                            <div class="flex flex-col items-start gap-4">
+                                <div class="flex flex-row items-center">
+                                    <input
+                                        id="terms"
+                                        name="terms"
+                                        type="checkbox"
+                                        required
+                                        bind:checked={agreed}
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <label for="terms" class="ml-2 block text-sm text-gray-900">
+                                        I agree to the terms and conditions
+                                    </label>
+                                </div>
+                                <div class="flex flex-row items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="zoningCompliance"
+                                        name="zoningCompliance"
+                                        value="true"
+                                        required
+                                        bind:checked={zoningCompliance}
+                                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <label
+                                        for="zoningCompliance"
+                                        class="ml-2 block text-sm text-gray-900"
+                                    >
+                                        I certify that my parking facility complies with local
+                                        zoning laws
+                                    </label>
+                                </div>
+                            </div>
 
-		<label for="barangay">Barangay:</label>
-		<input type="text" id="barangay" name="barangay" required />
-		<br /><br />
-
-		<label for="city">City/Municipality:</label>
-		<input type="text" id="city" name="city" required />
-		<br /><br />
-
-		<label for="province">Province (if applicable):</label>
-		<input type="text" id="province" name="province" />
-		<br /><br />
-
-		<label for="postalCode">Postal Code:</label>
-		<input type="text" id="postalCode" name="postalCode" />
-		<br /><br />
-
-		<label for="landmarks">Landmarks or Directions (optional):</label>
-		<input type="text" id="landmarks" name="landmarks" />
-		<br /><br />
-
-		<label for="spaceType">Parking Space Type:</label>
-		<select id="spaceType" name="spaceType" required>
-			<option value="Indoor">Indoor</option>
-			<option value="Outdoor">Outdoor</option>
-			<option value="Covered">Covered</option>
-			<option value="Uncovered">Uncovered</option>
-		</select>
-		<br /><br />
-
-		<label for="spaceLayout">Space Layout:</label>
-		<select id="spaceLayout" name="spaceLayout" required>
-			<option value="parallel">Parallel</option>
-			<option value="perpendicular">Perpendicular</option>
-			<option value="angled">Angled</option>
-			<option value="other">Other (please specify)</option>
-		</select>
-
-		<label for="otherSpaceLayout" id="otherLayoutLabel" class="hidden"
-			>Please specify the layout:</label
-		>
-		<input
-			type="text"
-			id="otherSpaceLayout"
-			name="otherSpaceLayout"
-			class="hidden"
-			placeholder="Describe the space layout if 'Other' is selected"
-		/>
-
-		<label for="spaceDimensions">Space Dimensions (in meters):</label>
-		<input
-			type="text"
-			id="spaceDimensions"
-			name="spaceDimensions"
-			required
-			placeholder="Enter width x length (e.g., 3m x 5m)"
-		/>
-
-		<h3>Operating Hours</h3>
-
-		<div id="operatingDays">
-			<div class="day-option">
-				<label for="mondayEnable">Monday</label>
-				<input type="checkbox" id="mondayEnable" class="enable-day" data-day="Monday" />
-				<div id="monday-hours" class="day-hours hidden">
-					<label for="mondayOpen">Opening Hour:</label>
-					<input type="time" id="mondayOpen" name="mondayOpen" />
-					<label for="mondayClose">Closing Hour:</label>
-					<input type="time" id="mondayClose" name="mondayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="tuesdayEnable">Tuesday</label>
-				<input type="checkbox" id="tuesdayEnable" class="enable-day" data-day="Tuesday" />
-				<div id="tuesday-hours" class="day-hours hidden">
-					<label for="tuesdayOpen">Opening Hour:</label>
-					<input type="time" id="tuesdayOpen" name="tuesdayOpen" />
-					<label for="tuesdayClose">Closing Hour:</label>
-					<input type="time" id="tuesdayClose" name="tuesdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="wednesdayEnable">Wednesday</label>
-				<input type="checkbox" id="wednesdayEnable" class="enable-day" data-day="Wednesday" />
-				<div id="wednesday-hours" class="day-hours hidden">
-					<label for="wednesdayOpen">Opening Hour:</label>
-					<input type="time" id="wednesdayOpen" name="wednesdayOpen" />
-					<label for="wednesdayClose">Closing Hour:</label>
-					<input type="time" id="wednesdayClose" name="wednesdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="thursdayEnable">Thursday</label>
-				<input type="checkbox" id="thursdayEnable" class="enable-day" data-day="Thursday" />
-				<div id="thursday-hours" class="day-hours hidden">
-					<label for="thursdayOpen">Opening Hour:</label>
-					<input type="time" id="thursdayOpen" name="thursdayOpen" />
-					<label for="thursdayClose">Closing Hour:</label>
-					<input type="time" id="thursdayClose" name="thursdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="fridayEnable">Friday</label>
-				<input type="checkbox" id="fridayEnable" class="enable-day" data-day="Friday" />
-				<div id="friday-hours" class="day-hours hidden">
-					<label for="fridayOpen">Opening Hour:</label>
-					<input type="time" id="fridayOpen" name="fridayOpen" />
-					<label for="fridayClose">Closing Hour:</label>
-					<input type="time" id="fridayClose" name="fridayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="saturdayEnable">Saturday</label>
-				<input type="checkbox" id="saturdayEnable" class="enable-day" data-day="Saturday" />
-				<div id="saturday-hours" class="day-hours hidden">
-					<label for="saturdayOpen">Opening Hour:</label>
-					<input type="time" id="saturdayOpen" name="saturdayOpen" />
-					<label for="saturdayClose">Closing Hour:</label>
-					<input type="time" id="saturdayClose" name="saturdayClose" />
-				</div>
-			</div>
-
-			<div class="day-option">
-				<label for="sundayEnable">Sunday</label>
-				<input type="checkbox" id="sundayEnable" class="enable-day" data-day="Sunday" />
-				<div id="sunday-hours" class="day-hours hidden">
-					<label for="sundayOpen">Opening Hour:</label>
-					<input type="time" id="sundayOpen" name="sundayOpen" />
-					<label for="sundayClose">Closing Hour:</label>
-					<input type="time" id="sundayClose" name="sundayClose" />
-				</div>
-			</div>
-		</div>
-
-		<label for="accessInfo">Access Information (optional):</label>
-		<select id="accessInfo" name="accessInfo">
-			<option value="">Select...</option>
-			<option value="Gate Code">Gate Code</option>
-			<option value="Security Check">Security Check</option>
-			<option value="Key Pickup">Key Pickup</option>
-			<option value="No Special Access">No Special Access</option>
-			<option value="Other">Other (Please specify)</option>
-		</select>
-
-		<!-- Custom input field for 'Other' selection -->
-		<input
-			type="text"
-			id="customAccessInfo"
-			name="customAccessInfo"
-			class="hidden"
-			placeholder="Enter custom access details"
-		/>
-
-		<label for="parkingPhotos">Upload Photos of the Parking Location:</label>
-		<input type="file" id="parkingPhotos" name="parkingPhotos" accept="image/*" multiple required />
-		<br /><br />
-
-		<!-- Facilities & Amenities Section -->
-		<h3>Facilities & Amenities</h3>
-
-		<label for="lightingAndSecurity">Lighting and Security Features:</label>
-		<input
-			type="text"
-			id="lightingAndSecurity"
-			name="lightingAndSecurity"
-			placeholder="e.g., CCTV, On-site security"
-			required
-		/>
-		<br /><br />
-
-		<label for="accessibilityOptions">Accessibility Options:</label>
-		<input
-			type="text"
-			id="accessibilityOptions"
-			name="accessibilityOptions"
-			placeholder="e.g., Disabled parking spots, Wheelchair access"
-			required
-		/>
-		<br /><br />
-
-		<label for="nearbyFacilities">Nearby Facilities:</label>
-		<input
-			type="text"
-			id="nearbyFacilities"
-			name="nearbyFacilities"
-			placeholder="e.g., EV charging stations, Restrooms, Elevators"
-			required
-		/>
-		<br /><br />
-
-		<!-- Pricing Information Section -->
-		<h3>Pricing Information</h3>
-
-		<div id="pricing">
-			<div class="rate-option">
-				<label for="hourlyEnable">Hourly Rate</label>
-				<input type="checkbox" id="hourlyEnable" class="enable-rate" data-rate="hourly" />
-				<div id="hourly-rate" class="rate-input hidden">
-					<label for="hourlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="hourlyRate"
-							name="hourlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
-					</div>
-				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="dailyEnable">Daily Rate</label>
-				<input type="checkbox" id="dailyEnable" class="enable-rate" data-rate="daily" />
-				<div id="daily-rate" class="rate-input hidden">
-					<label for="dailyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input type="number" id="dailyRate" name="dailyRate" placeholder="Enter Rate" min="0" />
-					</div>
-				</div>
-			</div>
-
-			<div class="rate-option">
-				<label for="monthlyEnable">Monthly Rate</label>
-				<input type="checkbox" id="monthlyEnable" class="enable-rate" data-rate="monthly" />
-				<div id="monthly-rate" class="rate-input hidden">
-					<label for="monthlyRate">Rate:</label>
-					<div class="input-wrapper">
-						<span class="peso-sign">₱</span>
-						<input
-							type="number"
-							id="monthlyRate"
-							name="monthlyRate"
-							placeholder="Enter Rate"
-							min="0"
-						/>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<h3>Accepted Payment Methods</h3>
-
-		<div class="payment-methods">
-			<div class="payment-option">
-				<input type="checkbox" id="cashPayment" name="paymentMethod" value="cash" />
-				<label for="cashPayment">Cash</label>
-			</div>
-
-			<div class="payment-option">
-				<input type="checkbox" id="mobilePayment" name="paymentMethod" value="mobilePayment" />
-				<label for="mobilePayment">Mobile Payment</label>
-			</div>
-
-			<div class="payment-option">
-				<input type="checkbox" id="otherPayment" name="paymentMethod" value="other" />
-				<label for="otherPayment">Other</label>
-				<input
-					type="text"
-					id="otherPaymentText"
-					name="otherPaymentText"
-					placeholder="Specify other method"
-					class="hidden"
-				/>
-			</div>
-		</div>
-
-		<!-- Legal and Compliance Documents -->
-		<h3>Legal & Compliance Requirements</h3>
-
-		<!-- Proof of Ownership/Lease Agreement -->
-		<label for="proofOfOwnership">Proof of Ownership/Lease Agreement:</label>
-		<input
-			type="file"
-			id="proofOfOwnership"
-			name="proofOfOwnership"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
-
-		<!-- Business Registration Certificate (for companies) -->
-		<label for="businessCert">Business Registration Certificate (for companies):</label>
-		<input
-			type="file"
-			id="businessCert"
-			name="businessCert"
-			accept="image/*,application/pdf"
-			required
-		/>
-		<br /><br />
-
-		<!-- BIR Certificate -->
-		<label for="birCert">BIR Certificate:</label>
-		<input type="file" id="birCert" name="birCert" accept="image/*,application/pdf" required />
-		<br /><br />
-
-		<!-- Liability Insurance Document -->
-		<label for="liabilityInsurance">Liability Insurance Document:</label>
-		<input
-			type="file"
-			id="liabilityInsurance"
-			name="liabilityInsurance"
-			accept="image/*,application/pdf"
-		/>
-		<br /><br />
-
-		<!-- Compliance with Zoning Laws -->
-		<div>
-			<input type="checkbox" id="zoningCompliance" name="zoningCompliance" required />
-			<label for="zoningCompliance"
-				>I confirm that the parking facility complies with local zoning laws.</label
-			>
-		</div>
-		<br />
-
-		<!-- Register Button -->
-		<button id="registerButton" type="submit">Register</button>
-
-		<!-- Modal for Email Verification -->
-		<div id="verifyModal" class="modal">
-			<div class="modal-content">
-				<p>Please verify your email. Click OK to proceed.</p>
-				<button id="okButton">OK</button>
-			</div>
-		</div>
-	</form>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || !agreed || !zoningCompliance}
+                                class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300"
+                            >
+                                {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </main>
-
-<style>
-	:root {
-		--primary-color: #767184;
-		--secondary-color: #d9d9d9;
-		--accent-color: #d9d9d9;
-		--background-color: #d9d9d9;
-		--text-color: #000;
-		--error-color: #e74c3c;
-	}
-
-	main {
-		background-color: #767184;
-		color: var(--text-color);
-		padding: 20px;
-	}
-
-	header {
-		background-color: #767184;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 15px 30px;
-		width: 100%;
-		margin-top: 90px;
-	}
-
-	.navbar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 85px;
-		background-color: #d9d9d9;
-		display: flex;
-		align-items: center;
-		padding-left: 20px;
-		justify-content: space-between;
-		padding-right: 20px;
-		padding-left: 20px;
-		box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-	}
-
-	.navbar .logo img {
-		height: 110px;
-		width: auto;
-	}
-
-	.container {
-		background-color: white;
-		border-radius: 10px;
-		padding: 30px;
-		width: 100%;
-		max-width: 900px;
-		box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-		text-align: center;
-	}
-
-	h1 {
-		font-size: 22px;
-		color: #333;
-		text-align: center;
-		margin-bottom: 15px;
-	}
-
-	h2 {
-		color: #000;
-		text-align: center;
-	}
-	p {
-		font-size: 14px;
-		color: #000;
-		text-align: center;
-		margin-bottom: 25px;
-	}
-
-	form {
-		max-width: 800px;
-		margin: 0 auto;
-		padding: 20px;
-		background-color: #fff;
-		border-radius: 8px;
-		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-	}
-
-	label {
-		display: block;
-		font-weight: bold;
-		margin: 15px 0 5px;
-		color: var(--primary-color);
-	}
-
-	input[type='text'],
-	input[type='email'],
-	input[type='tel'],
-	input[type='file'],
-	select,
-	textarea {
-		width: 100%;
-		padding: 10px;
-		margin-bottom: 15px;
-		border: 1px solid var(--secondary-color);
-		border-radius: 4px;
-		box-sizing: border-box;
-		font-size: 14px;
-	}
-
-	input[type='text']:focus,
-	input[type='email']:focus,
-	input[type='tel']:focus,
-	input[type='file']:focus,
-	select:focus,
-	textarea:focus {
-		border-color: var(--accent-color);
-		outline: none;
-		box-shadow: 0px 0px 5px var(--accent-color);
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	button[type='submit'] {
-		width: 100%;
-		padding: 12px;
-		background-color: var(--primary-color);
-		color: #fff;
-		font-weight: bold;
-		font-size: 16px;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: background-color 0.3s ease;
-	}
-
-	button[type='submit']:hover {
-		background-color: var(--secondary-color);
-	}
-
-	.error-message {
-		color: var(--error-color);
-		font-size: 0.9em;
-		margin-top: -10px;
-		margin-bottom: 10px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.payment-methods {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.payment-option {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.rate-option {
-		margin-bottom: 15px;
-	}
-
-	.rate-input {
-		margin-left: 20px;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.rate-input label {
-		margin-right: 10px;
-	}
-
-	.input-wrapper {
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.input-wrapper .peso-sign {
-		font-size: 18px;
-		color: #888;
-		margin-right: 5px;
-	}
-
-	.rate-input input {
-		width: 120px;
-		padding-left: 20px; /* Padding to make space for the peso sign */
-		font-size: 16px;
-	}
-
-	.rate-input input::placeholder {
-		color: transparent; /* Make the placeholder text invisible */
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.day-option {
-		margin-bottom: 10px;
-	}
-
-	.day-hours {
-		margin-left: 20px;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	.day-hours label {
-		margin-right: 10px;
-	}
-
-	.day-hours input {
-		margin-right: 20px;
-	}
-
-	.hidden {
-		display: none;
-	}
-
-	.modal {
-		display: none; /* Hidden by default */
-		position: fixed;
-		z-index: 1;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(0, 0, 0, 0.5); /* Black background with transparency */
-		padding-top: 60px;
-	}
-
-	/* Modal content */
-	.modal-content {
-		background-color: #fff;
-		margin: 5% auto;
-		padding: 20px;
-		border: 1px solid #888;
-		width: 50%;
-		text-align: center;
-	}
-
-	/* Close button */
-	.close {
-		color: #aaa;
-		font-size: 28px;
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	.close:hover,
-	.close:focus {
-		color: black;
-		text-decoration: none;
-		cursor: pointer;
-	}
-
-	button {
-		padding: 10px 20px;
-		background-color: #767184;
-		color: white;
-		border: none;
-		cursor: pointer;
-	}
-
-	button:hover {
-		background-color: #767170;
-	}
-</style>
