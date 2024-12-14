@@ -57,7 +57,6 @@ export default function buildRequestPayload(formData: FormData) {
             is24_7: is24_7,
             access_info: formData.get('accessInformation') as string,
             custom_access: (formData.get('customAccessInformation') as string) ?? '',
-            status: 'pending',
             name: formData.get('name') as string,
             lighting: formData.get('lightingAndSecurity') as string,
             accessibility: formData.get('accessibility') as string,
