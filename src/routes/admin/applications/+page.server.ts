@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import axiosInstance from '$lib/utils/function/validators/axios-config';
-import { API_ADMIN_ROOT, API_GET_PARKING_ESTABLISHMENT_APPLICANTS } from '$env/static/private';
+import { API_ADMIN_ROOT, API_GET_PARKING_ESTABLISHMENTS } from '$env/static/private';
 import credentialsManager from '$lib/utils/function/credentials-manager';
 
 export const load: PageServerLoad = async ({ cookies }) => {
@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         const credentials = credentialsManager(cookies);
 
         const { data } = await axiosInstance.get(
-            `${API_ADMIN_ROOT}${API_GET_PARKING_ESTABLISHMENT_APPLICANTS}`,
+            `${API_ADMIN_ROOT}${API_GET_PARKING_ESTABLISHMENTS}`,
             {
                 headers: {
                     Authorization: credentials.Authorization,
