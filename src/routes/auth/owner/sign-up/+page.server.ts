@@ -17,6 +17,7 @@ import {
 } from '$lib/utils/function/validators/pricing-validator';
 import buildRequestPayload from '$lib/utils/function/request-builder';
 import { email } from '$lib/state/account-email-registration-data';
+import { isAxiosError } from 'axios';
 
 export const actions: Actions = {
     default: async ({ request }) => {
@@ -155,11 +156,12 @@ export const actions: Actions = {
             email.set(formData.get('email') as string);
             return (await response).data;
         } catch (error) {
-            console.error('Registration error:', error);
-            return {
-                success: false,
-                error: 'Registration failed. Please try again.'
-            };
+            if (isAxiosError(error)) {
+                return {
+                    success: false,
+                    error: error.response?.data.error
+                };
+            }
         }
     }
 };

@@ -63,7 +63,13 @@ export const actions: Actions = {
             }
             const role: 'parking_manager' | 'user' | 'admin' = response.data.role;
             return { role };
-        } catch {
+        } catch(error) {
+            if (axios.isAxiosError(error)) {
+                return fail(error.response?.status || 500, {
+                    success: false,
+                    message: error.response?.data?.message || 'An error occurred'
+                });
+            }
             return fail(500, {
                 success: false,
                 message: 'Server error occurred'

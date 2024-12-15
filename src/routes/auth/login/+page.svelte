@@ -112,8 +112,8 @@
                                 showOtpForm = true;
                                 startTimer();
                             } else if (result.type === 'failure') {
-                                if (errorLoginMessage) {
-                                    alert('Please enter a valid email address');
+                                if (result.data) {
+                                    alert(result.data.message as string);
                                 }
                             }
                             loggingIn = false;
@@ -176,12 +176,17 @@
                     bind:this={otpForm}
                     use:enhance={() => {
                         return async ({ result }) => {
+                            console.log('result', result);
                             if (result.type === 'success') {
                                 const role = result.data!.role;
                                 if (role === 'admin') goto('/admin/dashboard');
                                 else if (role === 'parking_manager') goto('/parking-manager/dashboard');
                                 else if (role === 'user') goto(nextRoute || '/user/dashboard');
-                            } else if (result.type === 'error') {
+                             } else if (result.type == 'failure') {
+                                if (result.data) {
+                                    alert(result.data.message as string);
+                                }
+                             } else if (result.type === 'error') {
                                 errorMessage.textContent = result.error;
                                 alert("Invalid OTP. Please try again.");
                             }
