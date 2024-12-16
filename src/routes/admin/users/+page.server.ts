@@ -26,4 +26,17 @@ export const load: PageServerLoad = async ({ cookies }) => {
     }
 };
 
-export const actions: Actions = {};
+export const actions: Actions = {
+    default: async ({ request, cookies }) => {
+        try {
+            const formData = await request.formData();
+            const credentials = credentialsManager(cookies);
+            const banReason = formData.get('ban_reason');
+            const isPermanent = formData.get('is_permanent') === 'true';
+            const banStart = formData.get('ban_start');
+            const banEnd = formData.get('ban_end');
+        } catch {
+            return fail(599, { message: 'Failed to fetch data' });
+        }
+    }
+};

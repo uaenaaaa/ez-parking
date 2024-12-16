@@ -1,10 +1,11 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
     let { banForm, flipBanModal } = $props();
+    import { fade } from 'svelte/transition';
 </script>
 
-<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-<div class="fixed inset-0 z-10 overflow-y-auto">
+<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" transition:fade></div>
+<div class="fixed inset-0 z-10 overflow-y-auto" transition:fade>
     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
             <form class="p-6" use:enhance method="POST">
@@ -19,6 +20,7 @@
                             id="ban_reason"
                             bind:value={banForm.ban_reason}
                             required
+                            name="ban_reason"
                             maxlength="255"
                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         ></textarea>
@@ -27,6 +29,8 @@
                     <div class="flex items-center">
                         <input
                             type="checkbox"
+                            value="true"
+                            name="is_permanent"
                             id="is_permanent"
                             bind:checked={banForm.is_permanent}
                             class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
@@ -46,6 +50,7 @@
                                 id="ban_start"
                                 bind:value={banForm.ban_start}
                                 required
+                                name="ban_start"
                                 class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
@@ -57,6 +62,7 @@
                             <input
                                 type="datetime-local"
                                 id="ban_end"
+                                name="ban_end"
                                 bind:value={banForm.ban_end}
                                 required
                                 min={banForm.ban_start}

@@ -1,8 +1,6 @@
 <script lang="ts">
-    import { enhance } from '$app/forms';
     import type { UserMinimal } from '$lib/models/user';
     import type { PageData } from './$types';
-    import { fade, crossfade } from 'svelte/transition';
     import BanModalComponent from './BanModalComponent.svelte';
 
     let { data }: { data: PageData } = $props();
@@ -18,10 +16,7 @@
     let roleFilter = $state('all');
     let verificationFilter = $state('all');
     let isBanModalOpen = $state(false);
-	let flipBanModal = () => {
-		isBanModalOpen = !isBanModalOpen;
-	}
-    let isEditModalOpen = $state(false);
+	let flipBanModal = () => isBanModalOpen = !isBanModalOpen;
 </script>
 
 <svelte:head>
@@ -221,10 +216,6 @@
                                                 class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
                                             >
                                                 <div class="flex justify-end space-x-2">
-                                                    <button
-                                                        class="text-indigo-600 hover:text-indigo-900"
-                                                        >Edit</button
-                                                    >
                                                     {#if user.role === 'user'}
                                                         <button
                                                             onclick={() => {
@@ -247,7 +238,6 @@
         {/if}
     </div>
 </div>
-
 {#if isBanModalOpen}
     <BanModalComponent {banForm} {flipBanModal} />
 {/if}
