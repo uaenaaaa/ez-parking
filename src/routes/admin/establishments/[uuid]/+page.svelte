@@ -12,7 +12,7 @@
     import { fly } from 'svelte/transition';
     import { enhance } from '$app/forms';
 
-    const slotFeatures = ['standard', 'premium'] as const;
+    const slotFeatures = ['standard', 'covered', "vip", "disabled", "ev_charging"] as const;
     const slotStatus = ['open', 'occupied', 'reserved', 'closed'] as const;
     let show = $state(false);
 
@@ -95,7 +95,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500">Owner Type</p>
                         <p class="mt-1 text-sm text-gray-900">
-                            {establishment.company_profile.owner_type}
+                            {establishment.company_profile.owner_type.toUpperCase()}
                         </p>
                     </div>
                 </div>
@@ -107,13 +107,13 @@
                     <div>
                         <p class="text-sm font-medium text-gray-500">Space Type</p>
                         <p class="mt-1 text-sm text-gray-900">
-                            {establishment.parking_establishment.space_type}
+                            {establishment.parking_establishment.space_type.toUpperCase()}
                         </p>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500">Space Layout</p>
                         <p class="mt-1 text-sm text-gray-900">
-                            {establishment.parking_establishment.space_layout}
+                            {establishment.parking_establishment.space_layout.toUpperCase()}
                         </p>
                     </div>
                     <div>
@@ -160,7 +160,7 @@
                 <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {#each establishment.operating_hours as hour}
                         <div>
-                            <p class="text-sm font-medium text-gray-500">{hour.day_of_week}</p>
+                            <p class="text-sm font-medium text-gray-500">{hour.day_of_week.toUpperCase()}</p>
                             <p class="mt-1 text-sm text-gray-900">
                                 {hour.is_enabled
                                     ? `${hour.opening_time} - ${hour.closing_time}`
@@ -188,9 +188,9 @@
                             <p class="text-sm font-medium text-gray-500">Slot Code</p>
                             <p class="mt-1 text-sm text-gray-900">{slot.slot_code}</p>
                             <p class="text-sm font-medium text-gray-500">Status</p>
-                            <p class="mt-1 text-sm text-gray-900">{slot.slot_status}</p>
+                            <p class="mt-1 text-sm text-gray-900">{slot.slot_status.toUpperCase()}</p>
                             <p class="text-sm font-medium text-gray-500">Features</p>
-                            <p class="mt-1 text-sm text-gray-900">{slot.slot_features}</p>
+                            <p class="mt-1 text-sm text-gray-900">{slot.slot_features.toUpperCase()}</p>
                         </div>
                     {/each}
                 </div>
@@ -271,7 +271,10 @@
 </div>
 
 {#if show}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur" transition:fly>
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur"
+        transition:fly
+    >
         <div class="relative w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg">
             <button
                 aria-label="Close Modal"
@@ -290,8 +293,22 @@
 
             <h2 class="mb-6 text-2xl font-bold">Add New Parking Slot</h2>
 
-            <form class="space-y-6" use:enhance method="POST">
-                <input type="hidden" name="establishment_id" value={establishment.parking_establishment.establishment_id} />
+            <form class="space-y-6" method="POST" use:enhance={() => {
+                return ({ result }) => {
+                    console.log(result)
+                    console.log(result.type)
+                    if (result.type == 'success') {
+                        alert('Slot added successfully');
+                    } else if (result.type == 'failure') {
+                        alert('An error occurred while adding the slot: ' + result.data?.error);
+                    }
+                }
+            }}>
+                <input
+                    type="hidden"
+                    name="establishment_id"
+                    value={establishment.parking_establishment.establishment_id}
+                />
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="slot_code">
@@ -315,7 +332,6 @@
                             class="mt-1 block rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         />
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="base_rate">
                             Base Rate <span class="text-red-500">*</span>
@@ -323,18 +339,25 @@
                         <input
                             type="number"
                             name="base_rate"
+                            step="0.01"
+                            min="0"
                             required
                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700" for="slot_multiplier">
+                        <label
+                            class="block text-sm font-medium text-gray-700"
+                            for="slot_multiplier"
+                        >
                             Slot Multiplier <span class="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
                             name="slot_multiplier"
+                            step="0.01"
+                            min="0"
                             required
                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
@@ -381,7 +404,7 @@
                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             {#each slotFeatures as feature}
-                                <option value={feature}>{feature}</option>
+                                <option value={feature}>{feature.replaceAll("_", " ").toUpperCase()}</option>
                             {/each}
                         </select>
                     </div>
@@ -397,7 +420,7 @@
                             class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             {#each slotStatus as status}
-                                <option value={status}>{status}</option>
+                                <option value={status}>{status.toUpperCase()}</option>
                             {/each}
                         </select>
                     </div>

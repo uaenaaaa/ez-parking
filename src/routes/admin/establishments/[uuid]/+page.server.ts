@@ -9,7 +9,7 @@ import {
     API_ADD_NEW_SLOT
 } from '$env/static/private';
 import { isAxiosError } from 'axios';
-import type { Actions } from '@sveltejs/kit';
+import { fail, type Actions } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
     try {
@@ -102,10 +102,9 @@ export const actions: Actions = {
         } catch (error) {
             console.log(error);
             if (isAxiosError(error)) {
-                return {
-                    status: error.response?.status || 500,
-                    body: error.response?.data || 'Failed to add new slot'
-                };
+                return fail(400, {
+                    error: error.response?.data.message || 'Failed to add new slot'
+                });
             }
             return {
                 status: 500,

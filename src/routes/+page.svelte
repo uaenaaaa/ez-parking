@@ -2,6 +2,11 @@
 	import { fade } from 'svelte/transition';
 </script>
 
+<svelte:head>
+	<title>EZ Parking</title>
+	<meta name="description" content="Find your perfect parking spot with EZ Parking. View real-time availability and book parking spaces instantly." />
+</svelte:head>
+
 <main class="min-h-screen bg-gray-50">
 	<div class="h-screen">
 		<nav class="top-0 z-10 w-full">
