@@ -76,12 +76,11 @@
             class="mx-auto flex w-full max-w-2xl"
             use:enhance={() => {
                 isLoading = true;
-                return (result) => {
-                    searchTerm = result.formData.get('establishment_name') as string;
+                return ({result, formData}) => {
+                    searchTerm = formData.get('establishment_name') as string;
                     isLoading = false;
-                    console.log(result.result.data);
-                    if (result.result) {
-                        establishments = result.result?.data.data;
+                    if (result.type === "success" && result.data) {
+                        establishments = result.data.data as unknown as EstablishmentQuery[];
                     }
                 };
             }}

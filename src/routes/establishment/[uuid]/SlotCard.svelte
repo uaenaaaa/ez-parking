@@ -11,11 +11,13 @@
     let {
         slotInfo,
         rates,
-        establishmentUuid
+        establishmentUuid,
+        slotUuid
     }: {
         slotInfo: Slot;
         rates: PricingPlan[];
         establishmentUuid: string;
+        slotUuid: string;
     } = $props();
 
     function getRateDisplay(baseRate: number, rates: PricingPlan[]): { amount: string; type: string } {
@@ -47,8 +49,8 @@
     </div>
 
     <div class="space-y-2">
-        <p class="text-sm text-gray-600">Floor {slotInfo.floor_level}</p>
-        <p class="text-sm text-gray-600">{slotInfo.vehicle_type_name}</p>
+        <p class="text-sm text-gray-600">Floor: {slotInfo.floor_level}</p>
+        <p class="text-sm text-gray-600">Accommodates: {slotInfo.vehicle_type_name}</p>
         <p class="text-sm text-gray-600">Size: {slotInfo.vehicle_type_size}</p>
 
         {#if slotInfo.slot_status === 'open'}
@@ -61,9 +63,11 @@
                 </span>
             </div>
 
-            <a href="/establishment/{establishmentUuid}/{slotInfo.uuid}"
+            <a href="/auth/login?next={encodeURIComponent(
+								`/user/book/${establishmentUuid}/${slotUuid}`
+							)}"
                class="mt-4 inline-flex w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                Reserve Slot
+                Book this slot
             </a>
         {/if}
 

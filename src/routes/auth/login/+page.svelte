@@ -25,11 +25,6 @@
 	$effect(() => {
 		const urlParams = new URLSearchParams(window.location.search);
 		nextRoute = urlParams.get('next') || '';
-		console.log('nextRoute', nextRoute);
-		document.cookie = `X-CSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-		document.cookie = `Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-		document.cookie = `csrf_refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-		document.cookie = `refresh_token_cookie=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 		emailInput.focus();
 	});
 
