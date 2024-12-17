@@ -1,14 +1,14 @@
 import type { PageServerLoad } from './$types';
 import axiosInstance from '$lib/utils/function/validators/axios-config';
-import { API_ADMIN_ROOT, API_GET_PARKING_ESTABLISHMENTS } from '$env/static/private';
 import credentialsManager from '$lib/utils/function/credentials-manager';
+import { API_GET_PARKING_ESTABLISHMENT, API_ADMIN_ROOT } from '$env/static/private';
+import { isAxiosError } from 'axios';
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ params, cookies }) => {
     try {
         const credentials = credentialsManager(cookies);
-
         const { data } = await axiosInstance.get(
-            `${API_ADMIN_ROOT}${API_GET_PARKING_ESTABLISHMENTS}`,
+            `${API_ADMIN_ROOT}${API_GET_PARKING_ESTABLISHMENT}?establishment_uuid=${params.uuid}`,
             {
                 headers: {
                     Authorization: credentials.Authorization,
@@ -19,15 +19,16 @@ export const load: PageServerLoad = async ({ cookies }) => {
                 withCredentials: true
             }
         );
-
         return {
             success: true,
-            establishments: data.data
+            establishment: data.data
         };
-    } catch {
-        return {
-            success: false,
-            message: 'Failed to fetch data'
-        };
+    } catch (error) {
+        if (isAxiosError(error)) {
+            return {
+                success: false,
+                message: error.response?.data.message || 'Failed to fetch data'
+            };
+        }
     }
 };

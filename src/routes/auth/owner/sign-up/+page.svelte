@@ -149,10 +149,12 @@
                         }
                         else if (result.type === 'error') {
                             alert('An error occurred. Please try again later.');
-                        }
-                        else {
+                        } else if (result.type === "success") {
                             alert('Registration successful!');
                             goto('/auth/success');
+                        }
+                        else {
+                            alert('An error occurred. Please try again later.');
                         }
                     };
                 }}

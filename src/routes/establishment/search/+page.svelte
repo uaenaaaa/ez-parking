@@ -1,239 +1,344 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { debounce } from 'lodash-es';
-	import type { ActionData } from './$types.js';
-	import EstablishmentItem from './EstablishmentItem.svelte';
-	import type { Establishment } from '$lib/models/establishment/establishment.js';
+    import { enhance } from '$app/forms';
+    import EstablishmentItem from './EstablishmentItem.svelte';
+    import type { EstablishmentQuery } from '$lib/models/response-models/establishment-query';
 
-	let { form }: { form: ActionData } = $props();
-	let searchTerm = $state('');
-	let loading = $state(false);
-	let error = $state('');
-	let establishments = $state<Establishment[]>([]);
-	let longitude: number = $state(14.5995);
-	let latitude: number = $state(120.9842);
+    let searchTerm = $state('');
+    let loading = $state(false);
+    let establishments = $state<EstablishmentQuery[]>([]);
+    let user_longitude: number = $state(14.5995);
+    let user_latitude: number = $state(120.9842);
+    let isLoading = $state(false);
 
-	async function getIPBasedLocation() {
-		try {
-			const response = await fetch('https://ipapi.co/json/');
-			const data = await response.json();
-			return {
-				latitude: data.latitude,
-				longitude: data.longitude
-			};
-		} catch (error) {
-			// If all else fails, return the coordinates of Manila
-			return {
-				latitude: 14.5995,
-				longitude: 120.9842
-			};
-		}
-	}
+    async function getIPBasedLocation() {
+        try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            return {
+                latitude: data.latitude,
+                longitude: data.longitude
+            };
+        } catch (error) {
+            return {
+                latitude: 14.5995,
+                longitude: 120.9842
+            };
+        }
+    }
 
-	const debouncedSearch = debounce(async () => {
-		if (searchTerm.length <= 1) return;
-		loading = true;
-		try {
-			const formElement = document.querySelector('form');
-			if (formElement) formElement.requestSubmit();
-		} finally {
-			loading = false;
-		}
-	}, 500);
-
-	function handleEnhance() {
-		return async ({ result }: { result: any }) => {
-			if (result.type === 'success') {
-				establishments = result.data.data.establishments || [];
-			}
-		};
-	}
-	$effect(() => {
-		if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(
-				(position) => {
-					const data = position.coords;
-					latitude = data.latitude;
-					longitude = data.longitude;
-				},
-				async (error) => {
-					getIPBasedLocation().then((data) => {
-						latitude = data.latitude;
-						longitude = data.longitude;
-					});
-				},
-				{
-					enableHighAccuracy: true,
-				}
-			);
-		} else {
-			getIPBasedLocation().then((data) => {
-				latitude = data.latitude;
-				longitude = data.longitude;
-			});
-		}
-	});
+    $effect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const data = position.coords;
+                    user_latitude = data.latitude;
+                    user_longitude = data.longitude;
+                },
+                async (error) => {
+                    getIPBasedLocation().then((data) => {
+                        user_latitude = data.latitude;
+                        user_longitude = data.longitude;
+                    });
+                },
+                {
+                    enableHighAccuracy: true
+                }
+            );
+        } else {
+            getIPBasedLocation().then((data) => {
+                user_latitude = data.latitude;
+                user_longitude = data.longitude;
+            });
+        }
+    });
 </script>
 
-<main>
-	<div class="navbar">
-		<div class="logo">
-			<img src="../../logo.png" alt="NearbySpot Logo" />
-		</div>
-		<form method="POST" use:enhance={handleEnhance} class="search-bar">
-			<input
-				type="text"
-				name="establishment_name"
-				placeholder="Search for parking..."
-				bind:value={searchTerm}
-				oninput={debouncedSearch}
-			/>
-			<input type="hidden" name="longitude" bind:value={longitude} />
-			<input type="hidden" name="latitude" bind:value={latitude} />
-			<button type="submit">Search</button>
-		</form>
-	</div>
+<svelte:head>
+    <title>Search Establishments</title>
+</svelte:head>
 
-	<div class="container max-w-full">
-		<div class="search-results">
-			{#if searchTerm}
-				<h2>Parking establishment results for "{searchTerm}"</h2>
-			{:else}
-				<svg
-					viewBox="0 0 24 24"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-					width="100"
-					height="100"
-					><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g
-						id="SVGRepo_tracerCarrier"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					></g><g id="SVGRepo_iconCarrier">
-						<path
-							d="M3 12C3 4.5885 4.5885 3 12 3C19.4115 3 21 4.5885 21 12C21 19.4115 19.4115 21 12 21C4.5885 21 3 19.4115 3 12Z"
-							stroke="#323232"
-							stroke-width="2"
-						></path>
-						<path
-							d="M14 14L16 16"
-							stroke="#323232"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						></path>
-						<path
-							d="M15 11.5C15 13.433 13.433 15 11.5 15C9.567 15 8 13.433 8 11.5C8 9.567 9.567 8 11.5 8C13.433 8 15 9.567 15 11.5Z"
-							stroke="#323232"
-							stroke-width="2"
-						></path>
-					</g></svg
-				>
-				<p>Search for parking establishments</p>
-			{/if}
+<div class="min-h-screen bg-gray-50">
+    <nav
+        class="fixed left-0 right-0 top-0 z-50 flex h-20 items-center justify-between bg-white px-6 shadow-sm"
+    >
+        <div class="flex items-center">
+            <a href="/" class="flex items-center">
+                <img
+                    src="../../logo.png"
+                    alt="EZ Parking"
+                    class="h-16 w-auto"
+                />
+            </a>
+        </div>
 
-			{#if loading}
-				<p>Searching...</p>
-			{:else if establishments.length === 0}
-				<p>No establishments found</p>
-			{:else}
-				{#each establishments as establishment (establishment.establishment_id)}
-					<EstablishmentItem {establishment} userLat={latitude} userLong={longitude} />
-				{/each}
-			{/if}
-		</div>
+        <form
+            method="POST"
+            class="mx-auto flex w-full max-w-2xl"
+            use:enhance={() => {
+                isLoading = true;
+                return ({result, formData}) => {
+                    searchTerm = formData.get('establishment_name') as string;
+                    isLoading = false;
+                    if (result.type === "success" && result.data) {
+                        establishments = result.data.data as unknown as EstablishmentQuery[];
+                    }
+                };
+            }}
+        >
+            <div class="flex w-full items-center space-x-4">
+                <input
+                    type="text"
+                    name="establishment_name"
+                    placeholder="Search for parking establishments..."
+                    class="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 pr-12 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+                <input
+                    type="hidden"
+                    name="user_longitude"
+                    bind:value={user_longitude}
+                />
+                <input
+                    type="hidden"
+                    name="user_latitude"
+                    bind:value={user_latitude}
+                />
+                <button
+                    type="submit"
+                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                    {#if isLoading}
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                        >
+                            <g stroke="currentColor">
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="9.5"
+                                    fill="none"
+                                    stroke-linecap="round"
+                                    stroke-width="3"
+                                >
+                                    <animate
+                                        attributeName="stroke-dasharray"
+                                        calcMode="spline"
+                                        dur="1.5s"
+                                        keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
+                                        keyTimes="0;0.475;0.95;1"
+                                        repeatCount="indefinite"
+                                        values="0 150;42 150;42 150;42 150"
+                                    />
+                                    <animate
+                                        attributeName="stroke-dashoffset"
+                                        calcMode="spline"
+                                        dur="1.5s"
+                                        keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
+                                        keyTimes="0;0.475;0.95;1"
+                                        repeatCount="indefinite"
+                                        values="0;-16;-59;-59"
+                                    />
+                                </circle>
+                                <animateTransform
+                                    attributeName="transform"
+                                    dur="2s"
+                                    repeatCount="indefinite"
+                                    type="rotate"
+                                    values="0 12 12;360 12 12"
+                                />
+                            </g>
+                        </svg>
+                    {:else}
+                        Search
+                    {/if}
+                </button>
+            </div>
+        </form>
+    </nav>
 
-		<div class="map-container">
-			<iframe
-				title="Map"
-				class="map"
-				src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.407731415259!2d121.04902791517263!3d14.552600989827994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c90e30d1c44f%3A0xa217dcff8561d073!2sOne%20Parkade!5e0!3m2!1sen!2sph!4v1614076328908!5m2!1sen!2sph"
-				allowfullscreen
-				loading="lazy"
-			></iframe>
-		</div>
-	</div>
-</main>
+    <main class="container mx-auto max-w-7xl px-4 pb-8 pt-24">
+        <div class="space-y-4">
+            {#if searchTerm}
+                <h2 class="text-xl font-semibold text-gray-900">
+                    Results for "{searchTerm}"
+                </h2>
+            {:else}
+                <div class="flex flex-col items-center justify-center py-12">
+                    <svg
+                        class="h-16 w-16 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                    </svg>
+                    <p class="mt-4 text-lg text-gray-600">
+                        Search for parking establishments
+                    </p>
+                </div>
+            {/if}
 
-<style>
-	main {
-		margin: 0;
-		color: #000;
-		background-color: #767184;
-		width: 100%;
-	}
-
-	.navbar {
-		position: fixed;
-		top: 0;
-		width: 100%;
-		height: 80px;
-		background: rgba(217, 217, 217, 0.9);
-		display: flex;
-		align-items: center;
-		padding: 0 20px;
-		z-index: 100;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	}
-
-	.navbar .logo {
-		display: flex;
-		align-items: center;
-		margin-right: 20px;
-	}
-
-	.navbar .logo img {
-		height: 110px;
-	}
-
-	.search-results {
-		width: 35%;
-		background-color: #d9d9d9;
-		overflow-y: auto;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 15px;
-		box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-	}
-
-	.search-results h2 {
-		font-size: 22px;
-		margin-bottom: 15px;
-		color: #333;
-	}
-
-	/* Search Bar */
-	.navbar .search-bar {
-		flex-grow: 1;
-		max-width: 700px;
-		position: relative;
-	}
-
-	.navbar .search-bar input[type='text'] {
-		width: 100%;
-		padding: 12px 18px;
-		font-size: 16px;
-		border: 1px solid #ccc;
-		border-radius: 5px;
-		box-sizing: border-box;
-	}
-
-	.container {
-		display: flex;
-		height: calc(100vh - 100px);
-		margin-top: 80px;
-		width: 100%;
-	}
-
-	.map-container {
-		flex-grow: 1;
-		position: relative;
-	}
-
-	.map {
-		width: 100%;
-		height: 100%;
-		border: none;
-	}
-</style>
+            {#if loading}
+                <div class="flex justify-center py-8">
+                    <div
+                        class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"
+                    ></div>
+                </div>
+            {:else if establishments.length === 0 && searchTerm}
+                <div class="py-8 rounded-lg bg-gray-50 flex flex-col justify-center items-center gap-4 text-center">
+                    <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                        >
+                            <g
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-dasharray="64"
+                                    stroke-dashoffset="64"
+                                    d="M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9c-4.97 0 -9 -4.03 -9 -9c0 -4.97 4.03 -9 9 -9Z"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="stroke-dashoffset"
+                                        dur="0.6s"
+                                        values="64;0"
+                                    />
+                                </path>
+                                <path
+                                    stroke-dasharray="8"
+                                    stroke-dashoffset="8"
+                                    d="M12 12h-5.5"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="stroke-dashoffset"
+                                        begin="1.3s"
+                                        dur="0.2s"
+                                        values="8;0"
+                                    />
+                                    <animateTransform
+                                        fill="freeze"
+                                        attributeName="transform"
+                                        begin="1.3s"
+                                        dur="0.2s"
+                                        type="rotate"
+                                        values="0 12 12;15 12 12"
+                                    />
+                                </path>
+                            </g>
+                            <g fill="currentColor">
+                                <path
+                                    fill-opacity="0"
+                                    d="M12 21C9.41 21 7.15 20.79 5.94 19L12 21L18.06 19C16.85 20.79 14.59 21 12 21Z"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="d"
+                                        begin="0.6s"
+                                        dur="0.4s"
+                                        values="M12 21C9.41 21 7.15 20.79 5.94 19L12 21L18.06 19C16.85 20.79 14.59 21 12 21Z;M12 16C9.41 16 7.15 17.21 5.94 19L12 21L18.06 19C16.85 17.21 14.59 16 12 16Z"
+                                    />
+                                    <set
+                                        fill="freeze"
+                                        attributeName="fill-opacity"
+                                        begin="0.6s"
+                                        to="1"
+                                    />
+                                </path>
+                                <circle
+                                    cx="7"
+                                    cy="12"
+                                    r="0"
+                                    transform="rotate(15 12 12)"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="r"
+                                        begin="0.9s"
+                                        dur="0.2s"
+                                        values="0;1"
+                                    />
+                                </circle>
+                                <circle
+                                    cx="7"
+                                    cy="12"
+                                    r="0"
+                                    transform="rotate(65 12 12)"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="r"
+                                        begin="0.95s"
+                                        dur="0.2s"
+                                        values="0;1"
+                                    />
+                                </circle>
+                                <circle
+                                    cx="7"
+                                    cy="12"
+                                    r="0"
+                                    transform="rotate(115 12 12)"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="r"
+                                        begin="1s"
+                                        dur="0.2s"
+                                        values="0;1"
+                                    />
+                                </circle>
+                                <circle
+                                    cx="7"
+                                    cy="12"
+                                    r="0"
+                                    transform="rotate(165 12 12)"
+                                >
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="r"
+                                        begin="1.05s"
+                                        dur="0.2s"
+                                        values="0;1"
+                                    />
+                                </circle>
+                                <circle cx="12" cy="12" r="0">
+                                    <animate
+                                        fill="freeze"
+                                        attributeName="r"
+                                        begin="1.3s"
+                                        dur="0.2s"
+                                        values="0;2"
+                                    />
+                                </circle>
+                            </g>
+                        </svg>
+                    <p class="text-gray-600">No establishments found</p>
+                </div>
+            {:else}
+                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {#each establishments as establishment (establishment.establishment_id)}
+                            <EstablishmentItem
+                                {establishment}
+                                userLat={user_latitude}
+                                userLong={user_longitude}
+                            />
+                        {/each}
+                </div>
+            {/if}
+        </div>
+    </main>
+</div>

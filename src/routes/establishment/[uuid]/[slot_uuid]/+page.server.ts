@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 		const response = await axios.get(queryUrl, {
 			params: {
-				slot_code: params.code,
+				slot_uuid: params.uuid,
 				establishment_uuid: params.uuid
 			},
 			withCredentials: true,

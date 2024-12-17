@@ -1,7 +1,64 @@
 import { fail, type Actions, type Cookies } from '@sveltejs/kit';
 import axiosInstance from '$lib/utils/function/validators/axios-config';
-import { API_AUTH_LOGIN, API_AUTH_ROOT, API_AUTH_VERIFY_OTP } from '$env/static/private';
+import {
+    API_AUTH_LOGIN,
+    API_AUTH_ROOT,
+    API_AUTH_VERIFY_OTP,
+    API_AUTH_LOGOUT
+} from '$env/static/private';
 import axios from 'axios';
+import type { PageServerLoad } from './$types';
+import credentialsManager from '$lib/utils/function/credentials-manager';
+
+export const load: PageServerLoad = async ({ cookies, url }) => {
+    try {
+        console.log('URL:', url.searchParams.get('next'));
+        const credentials = credentialsManager(cookies);
+        console.log('Credentials: ', credentials);
+        const authToken = credentials.Authorization;
+        const XCSRFToken = credentials['X-CSRF-TOKEN'];
+        const refresh_token_cookie = credentials.refresh_token_cookie;
+        const csrf_refresh_token = credentials.csrf_refresh_token;
+
+        if (url.searchParams.has('next')) {
+            const response = await axiosInstance.post(
+                `${API_AUTH_ROOT}${API_AUTH_LOGOUT}`,
+                {},
+                {
+                    headers: {
+                        Authorization: authToken,
+                        'X-CSRF-TOKEN': XCSRFToken,
+                        csrf_refresh_token,
+                        refresh_token_cookie
+                    },
+                    withCredentials: true
+                }
+            );
+
+            const responseCookies = response.headers['set-cookie'];
+            if (responseCookies && Array.isArray(responseCookies)) {
+                responseCookies.forEach((cookie) => {
+                    const [cookieString] = cookie.split(';');
+                    const [name, ...parts] = cookieString.split('=');
+                    const value = parts.join('=');
+
+                    cookies.set(name, value, {
+                        path: '/',
+                        secure: true,
+                        sameSite: 'none',
+                        httpOnly: true
+                    });
+                });
+            }
+        }
+        return { success: true };
+    } catch {
+        cookies.delete('Authorization', { path: '/' });
+        cookies.delete('X-CSRF-TOKEN', { path: '/' });
+        cookies.delete('csrf_refresh_token', { path: '/' });
+        cookies.delete('refresh_token_cookie', { path: '/' });
+    }
+};
 
 export const actions: Actions = {
     login: async ({ request }) => {
@@ -63,7 +120,13 @@ export const actions: Actions = {
             }
             const role: 'parking_manager' | 'user' | 'admin' = response.data.role;
             return { role };
-        } catch {
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                return fail(error.response?.status || 500, {
+                    success: false,
+                    message: error.response?.data?.message || 'An error occurred'
+                });
+            }
             return fail(500, {
                 success: false,
                 message: 'Server error occurred'
