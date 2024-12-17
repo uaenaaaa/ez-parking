@@ -4,6 +4,6 @@ export interface PricingPlan {
     is_enabled: boolean;
     plan_id: number;
     rate: string;
-    rate_type: string;
+    rate_type: 'hourly' | 'daily' | 'monthly';
     updated_at: string;
 }

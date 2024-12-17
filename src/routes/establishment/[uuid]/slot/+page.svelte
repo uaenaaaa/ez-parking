@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { ApiResponse } from '$lib/models/establishment/establishment.js';
 	import type { PageData } from '../$types.js';
 	let { data }: { data: PageData } = $props();
 
