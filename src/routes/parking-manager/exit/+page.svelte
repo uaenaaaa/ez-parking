@@ -40,7 +40,6 @@
 		scanSuccess = true;
 		isScanning = false;
 		scanner.clear();
-		console.log(`Code matched = ${decodedText.length}`);
 		if (validateQrCode(decodedText)) {
 			scanError = 'Invalid QR code';
 			return;

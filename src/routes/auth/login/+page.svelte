@@ -171,7 +171,6 @@
                     bind:this={otpForm}
                     use:enhance={() => {
                         return async ({ result }) => {
-                            console.log('result', result);
                             if (result.type === 'success') {
                                 const role = result.data!.role;
                                 if (role === 'admin') goto('/admin/dashboard');

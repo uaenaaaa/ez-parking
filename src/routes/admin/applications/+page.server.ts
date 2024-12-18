@@ -16,7 +16,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
                     csrf_refresh_token: credentials.csrf_refresh_token,
                     refresh_token_cookie: credentials.refresh_token_cookie
                 },
-                withCredentials: true
             }
         );
 

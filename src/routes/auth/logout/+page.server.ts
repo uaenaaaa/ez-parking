@@ -1,9 +1,8 @@
 import type { PageServerLoad } from './$types';
-import { API_BASE_URL, API_AUTH_LOGOUT, API_AUTH_ROOT } from '$env/static/private';
-import axios from 'axios';
+import { API_AUTH_LOGOUT, API_AUTH_ROOT } from '$env/static/private';
 import { redirect } from '@sveltejs/kit';
-import { httpsAgent } from '$lib/server/http-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
+import axiosInstance from '$lib/utils/function/validators/axios-config';
 
 export const load: PageServerLoad = async ({ cookies }) => {
     const cookiesObject = credentialsManager(cookies);
@@ -16,8 +15,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
         redirect(303, '/');
     }
 
-    const response = await axios.post(
-        `${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_LOGOUT}`,
+    const response = await axiosInstance.post(
+        `${API_AUTH_ROOT}${API_AUTH_LOGOUT}`,
         {},
         {
             headers: {
@@ -25,9 +24,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
                 'X-CSRF-TOKEN': XCSRFToken,
                 csrf_refresh_token,
                 refresh_token_cookie
-            },
-            withCredentials: true,
-            httpsAgent
+            }
         }
     );
 

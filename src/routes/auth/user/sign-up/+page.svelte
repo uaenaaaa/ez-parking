@@ -39,7 +39,6 @@
                 class="mt-8 space-y-4"
                 use:enhance={() => {
                     return async ({ result }) => {
-                        console.log(result);
                         if (result.type === 'failure') {
                             errorMessage.innerText = result.data?.message as string;
                         } else {

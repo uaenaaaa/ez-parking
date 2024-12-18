@@ -15,8 +15,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                     'X-CSRF-TOKEN': credentials['X-CSRF-TOKEN'],
                     csrf_refresh_token: credentials.csrf_refresh_token,
                     refresh_token_cookie: credentials.refresh_token_cookie
-                },
-                withCredentials: true
+                }
             }
         );
         return {

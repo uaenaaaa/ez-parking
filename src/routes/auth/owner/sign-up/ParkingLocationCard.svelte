@@ -111,7 +111,6 @@
                 alert('Location not found');
             }
         } catch (error) {
-            console.error('Search error:', error);
             alert('Error searching location');
         }
     }

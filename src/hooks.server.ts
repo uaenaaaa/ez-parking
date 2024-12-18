@@ -47,9 +47,7 @@ async function verifyAndGetRole(
                     'X-CSRF-TOKEN': xsrfToken || '',
                     refresh_token_cookie: refresh_token_cookie || '',
                     csrf_refresh_token: csrf_refresh_token || ''
-                },
-                withCredentials: true,
-                httpsAgent
+                }
             }
         );
         return result.data.role as UserRole;
@@ -79,6 +77,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     const xsrfToken = cookiesObject['X-CSRF-TOKEN'];
     const csrf_refresh_token = cookiesObject.csrf_refresh_token;
     const refresh_token_cookie = cookiesObject.refresh_token_cookie;
+    const next = event.url.searchParams.get('next');
 
     if (event.url.pathname.endsWith('/login')) {
         const userRole = await verifyAndGetRole(
@@ -88,6 +87,9 @@ export const handle: Handle = async ({ event, resolve }) => {
             refresh_token_cookie
         );
         if (userRole) {
+            if (next) {
+                throw redirect(303, next);
+            }
             throw redirect(303, getRedirectPath(userRole));
         }
         return resolve(event);

@@ -1,46 +1,22 @@
 <script lang="ts">
+    import type { ParkingSlot } from '$lib/models/parking-slot';
+    import type { Transaction } from '$lib/models/transaction';
 	import type { PageData } from './$types';
-
+	interface Response extends Transaction, ParkingSlot {}
 	let { data }: { data: PageData } = $props();
-	let transactions = data as {
-		code: string;
-		transactions: {
-			transactions: {
-				slot_details: {
-					floor_level: number;
-					is_premium: string;
-					slot_code: string;
-					slot_features: string;
-					slot_multiplier: number;
-					slot_status: string;
-				};
-
-				uuid: string;
-				payment_status: 'PENDING' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE';
-				status: 'reserved' | 'active' | 'completed' | 'cancelled';
-				vehicle_details: {
-					base_rate_multiplier: number;
-					size_category: string;
-					type_name: string;
-				};
-			}[];
-		};
-	};
+	let transactions = data.data as unknown as Response[]
 	let searchTerm = $state('');
-	let sortBy = $state('slot_code');
-	let sortDirection = $state<'asc' | 'desc'>('asc');
-
-	let filteredTransactions = $derived(
-		transactions.transactions.transactions.filter(
-			(t) =>
-				t.slot_details.slot_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				t.vehicle_details.type_name.toLowerCase().includes(searchTerm.toLowerCase())
-		)
-	);
 </script>
+
+<svelte:head>
+	<title>Transactions | My Transactions</title>
+</svelte:head>
 
 <div class="min-h-screen bg-gray-50 p-4">
 	<div class="mx-auto max-w-7xl">
+		<div class="col-span-2 mb-6">
+            <a href="/user/dashboard" class="text-blue-500"> &larr; Back to Dashboard</a>
+        </div>
 		<div class="mb-6 sm:flex sm:items-center sm:justify-between">
 			<div>
 				<h1 class="text-2xl font-semibold text-gray-900">My Transactions</h1>
@@ -58,7 +34,7 @@
 		</div>
 
 		<div class="space-y-4">
-			{#each filteredTransactions as transaction}
+			{#each transactions as transaction}
 				<div class="overflow-hidden rounded-lg bg-white shadow">
 					<div class="p-6">
 						<div class="flex items-center justify-between">
@@ -128,19 +104,19 @@
 								<dl class="mt-2 space-y-1">
 									<div class="flex justify-between">
 										<dt class="text-sm text-gray-600">Code:</dt>
-										<dd class="text-sm font-medium">{transaction.slot_details.slot_code}</dd>
+										<dd class="text-sm font-medium">{transaction.slot_code}</dd>
 									</div>
 									<div class="flex justify-between">
 										<dt class="text-sm text-gray-600">Floor:</dt>
 										<dd class="text-sm font-medium">
-											Level {transaction.slot_details.floor_level}
+											Level {transaction.floor_level}
 										</dd>
 									</div>
 									<div class="flex justify-between">
 										<dt class="text-sm text-gray-600">Features:</dt>
 										<dd class="text-sm font-medium">
-											{transaction.slot_details.slot_features}
-											{#if transaction.slot_details.is_premium === 'Yes'}
+											{transaction.slot_features.toUpperCase()}
+											{#if transaction.is_premium}
 												<span
 													class="ml-1 inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800"
 												>
@@ -153,39 +129,40 @@
 							</div>
 
 							<div>
-								<h3 class="text-sm font-medium text-gray-500">Vehicle Information</h3>
+								<h3 class="text-sm font-medium text-gray-500">Rate Information</h3>
 								<dl class="mt-2 space-y-1">
 									<div class="flex justify-between">
-										<dt class="text-sm text-gray-600">Type:</dt>
-										<dd class="text-sm font-medium">{transaction.vehicle_details.type_name}</dd>
+										<dt class="text-sm text-gray-600">Slot Multiplier:</dt>
+										<dd class="text-sm font-medium">{transaction.slot_multiplier}x</dd>
 									</div>
 									<div class="flex justify-between">
-										<dt class="text-sm text-gray-600">Size:</dt>
-										<dd class="text-sm font-medium">{transaction.vehicle_details.size_category}</dd>
+										<dt class="text-sm text-gray-600">Base Rate:</dt>
+										<dd class="text-sm font-medium">{transaction.base_rate}x</dd>
 									</div>
 									<div class="flex justify-between">
-										<dt class="text-sm text-gray-600">Rate Multiplier:</dt>
+										<dt class="text-sm text-gray-600">Amount Due: </dt>
 										<dd class="text-sm font-medium">
-											{transaction.vehicle_details.base_rate_multiplier}x
+											₱{transaction.amount_due}
 										</dd>
 									</div>
 								</dl>
 							</div>
 
 							<div>
-								<h3 class="text-sm font-medium text-gray-500">Rate Information</h3>
+								<h3 class="text-sm font-medium text-gray-500">Other Information</h3>
 								<dl class="mt-2 space-y-1">
 									<div class="flex justify-between">
-										<dt class="text-sm text-gray-600">Slot Multiplier:</dt>
-										<dd class="text-sm font-medium">{transaction.slot_details.slot_multiplier}x</dd>
+										<dt class="text-sm text-gray-600">Amount Due Type</dt>
+										<dd class="text-sm font-medium">{transaction.duration_type.toUpperCase()}</dd>
 									</div>
 									<div class="flex justify-between">
-										<dt class="text-sm text-gray-600">Total Multiplier:</dt>
+										<dt class="text-sm text-gray-600">Entry Time:</dt>
+										<dd class="text-sm font-medium">{transaction.entry_time ?? 'N/A'}</dd>
+									</div>
+									<div class="flex justify-between">
+										<dt class="text-sm text-gray-600">Exit Time: </dt>
 										<dd class="text-sm font-medium">
-											{(
-												transaction.slot_details.slot_multiplier *
-												transaction.vehicle_details.base_rate_multiplier
-											).toFixed(2)}x
+											{transaction.exit_time ?? 'N/A'}
 										</dd>
 									</div>
 								</dl>

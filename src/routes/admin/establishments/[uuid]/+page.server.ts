@@ -22,8 +22,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                     'X-CSRF-TOKEN': credentials['X-CSRF-TOKEN'],
                     csrf_refresh_token: credentials.csrf_refresh_token,
                     refresh_token_cookie: credentials.refresh_token_cookie
-                },
-                withCredentials: true
+                }
             }
         );
         const vehicleTypes = await axiosInstance.get(
@@ -34,8 +33,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                     'X-CSRF-TOKEN': credentials['X-CSRF-TOKEN'],
                     csrf_refresh_token: credentials.csrf_refresh_token,
                     refresh_token_cookie: credentials.refresh_token_cookie
-                },
-                withCredentials: true
+                }
             }
         );
         return {
@@ -90,17 +88,14 @@ export const actions: Actions = {
                         'X-CSRF-TOKEN': credentials['X-CSRF-TOKEN'],
                         csrf_refresh_token: credentials.csrf_refresh_token,
                         refresh_token_cookie: credentials.refresh_token_cookie
-                    },
-                    withCredentials: true
+                    }
                 }
             );
-            console.log(response);
             return {
                 status: 'success',
                 body: response.data
             };
         } catch (error) {
-            console.log(error);
             if (isAxiosError(error)) {
                 return fail(400, {
                     error: error.response?.data.message || 'Failed to add new slot'

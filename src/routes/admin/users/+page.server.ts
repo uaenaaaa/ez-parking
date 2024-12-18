@@ -3,6 +3,7 @@ import { API_ADMIN_ROOT, API_GET_ALL_USER } from '$env/static/private';
 import axiosInstance from '$lib/utils/function/validators/axios-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
 import { fail, type Actions } from '@sveltejs/kit';
+import { isAxiosError } from 'axios';
 export const load: PageServerLoad = async ({ cookies }) => {
     try {
         const credentials = credentialsManager(cookies);
@@ -12,8 +13,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
                 'X-CSRF-TOKEN': credentials['X-CSRF-TOKEN'],
                 csrf_refresh_token: credentials.csrf_refresh_token,
                 refresh_token_cookie: credentials.refresh_token_cookie
-            },
-            withCredentials: true
+            }
         });
         return {
             success: true,
@@ -21,7 +21,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
                 users: users.data
             }
         };
-    } catch {
+    } catch (error) {
+        if (isAxiosError(error)) {
+            return fail(500, { error: error.response?.data });
+        }
         return fail(599, { message: 'Failed to fetch data' });
     }
 };
