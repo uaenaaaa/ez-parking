@@ -12,9 +12,7 @@ import credentialsManager from '$lib/utils/function/credentials-manager';
 
 export const load: PageServerLoad = async ({ cookies, url }) => {
     try {
-        console.log('URL:', url.searchParams.get('next'));
         const credentials = credentialsManager(cookies);
-        console.log('Credentials: ', credentials);
         const authToken = credentials.Authorization;
         const XCSRFToken = credentials['X-CSRF-TOKEN'];
         const refresh_token_cookie = credentials.refresh_token_cookie;
@@ -30,8 +28,7 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
                         'X-CSRF-TOKEN': XCSRFToken,
                         csrf_refresh_token,
                         refresh_token_cookie
-                    },
-                    withCredentials: true
+                    }
                 }
             );
 
@@ -64,18 +61,11 @@ export const actions: Actions = {
     login: async ({ request }) => {
         const data = await request.formData();
         try {
-            console.log(data);
-            const response = await axiosInstance.post(
-                `${API_AUTH_ROOT}${API_AUTH_LOGIN}`,
-                {
-                    email: data.get('email') as string
-                },
-                { withCredentials: true }
-            );
-            console.log(response.data);
+            const response = await axiosInstance.post(`${API_AUTH_ROOT}${API_AUTH_LOGIN}`, {
+                email: data.get('email') as string
+            });
             return { status: 200, data: response.data };
         } catch (error) {
-            console.log(error);
             if (axios.isAxiosError(error)) {
                 return fail(error.response?.status || 500, {
                     success: false,
@@ -93,15 +83,11 @@ export const actions: Actions = {
                 (_, i) => (data.get(`otp-${i}`) as string) || ''
             );
 
-            const response = await axiosInstance.patch(
-                `${API_AUTH_ROOT}${API_AUTH_VERIFY_OTP}`,
-                {
-                    email: data.get('email'),
-                    otp: otpDigits.join(''),
-                    remember_me: data.get('remember') === 'on'
-                },
-                { withCredentials: true }
-            );
+            const response = await axiosInstance.patch(`${API_AUTH_ROOT}${API_AUTH_VERIFY_OTP}`, {
+                email: data.get('email'),
+                otp: otpDigits.join(''),
+                remember_me: data.get('remember') === 'on'
+            });
 
             const responseCookies = response.headers['set-cookie'];
             if (responseCookies && Array.isArray(responseCookies)) {

@@ -1,14 +1,11 @@
 import type { PageServerLoad } from './$types';
-import axios from 'axios';
-import { httpsAgent } from '$lib/server/http-config';
-import { API_BASE_URL, API_AUTH_VERIFY_EMAIL, API_AUTH_ROOT } from '$env/static/private';
+import { API_AUTH_VERIFY_EMAIL, API_AUTH_ROOT } from '$env/static/private';
 import { redirect } from '@sveltejs/kit';
+import axiosInstance from '$lib/utils/function/validators/axios-config';
 
 export const load: PageServerLoad = async ({ params }) => {
-	axios.patch(
-		`${API_BASE_URL}${API_AUTH_ROOT}${API_AUTH_VERIFY_EMAIL}`,
-		{ verification_token: params.code },
-		{ httpsAgent }
-	);
-	redirect(303, '/');
+    axiosInstance.patch(`${API_AUTH_ROOT}${API_AUTH_VERIFY_EMAIL}`, {
+        verification_token: params.code
+    });
+    redirect(303, '/');
 };

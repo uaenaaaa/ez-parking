@@ -84,7 +84,6 @@
 
 	$effect(() => {
 		if (data.error) {
-			console.error(data.error);
 			return;
 		}
 

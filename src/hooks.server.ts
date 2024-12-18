@@ -47,9 +47,7 @@ async function verifyAndGetRole(
                     'X-CSRF-TOKEN': xsrfToken || '',
                     refresh_token_cookie: refresh_token_cookie || '',
                     csrf_refresh_token: csrf_refresh_token || ''
-                },
-                withCredentials: true,
-                httpsAgent
+                }
             }
         );
         return result.data.role as UserRole;

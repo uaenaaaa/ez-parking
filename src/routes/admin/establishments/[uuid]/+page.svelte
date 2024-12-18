@@ -295,8 +295,6 @@
 
             <form class="space-y-6" method="POST" use:enhance={() => {
                 return ({ result }) => {
-                    console.log(result)
-                    console.log(result.type)
                     if (result.type == 'success') {
                         alert('Slot added successfully');
                     } else if (result.type == 'failure') {

@@ -25,7 +25,6 @@
         slot_info: Slot;
         has_ongoing_transaction: boolean;
     };
-	console.log(transactionCheckoutData);
     let agreed = $state(false);
     let terms = $state(false);
     let isSubmitting = $state(false);

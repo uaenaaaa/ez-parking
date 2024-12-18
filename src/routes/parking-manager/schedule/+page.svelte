@@ -49,7 +49,6 @@
 				use:enhance={() => {
 					isUpdating = true;
 					return async ({ result }) => {
-						console.log(result);
 						isUpdating = false;
 						if (result.type === 'success') {
 							showSuccess = true;

@@ -66,7 +66,6 @@
 
 	async function handleEntryApproval() {
 		isLoading = true;
-		console.log('Approving entry for:', data.transaction.id);
 		setTimeout(() => {
 			isLoading = false;
 		}, 2000);

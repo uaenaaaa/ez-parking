@@ -24,8 +24,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
                     'X-CSRF-TOKEN': cookieObject['X-CSRF-TOKEN'],
                     csrf_refresh_token: cookieObject.csrf_refresh_token,
                     refresh_token_cookie: cookieObject.refresh_token_cookie
-                },
-                withCredentials: true
+                }
             }
         );
         return response.data;
@@ -65,13 +64,15 @@ export const actions: Actions = {
                         'X-CSRF-TOKEN': cookiesObject['X-CSRF-TOKEN'],
                         csrf_refresh_token: cookiesObject.csrf_refresh_token,
                         refresh_token_cookie: cookiesObject.refresh_token_cookie
-                    },
-                    withCredentials: true
+                    }
                 }
             );
             return { success: true, data: response.data };
         } catch (error) {
-            console.error('Failed to submit transaction:', error);
+            if (isAxiosError(error)) {
+                return fail(500, { error: error.response?.data });
+            }
+            return fail(500, { error: 'Failed to create transaction' });
         }
     }
 };

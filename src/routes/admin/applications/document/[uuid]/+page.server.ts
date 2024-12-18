@@ -14,8 +14,7 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
                     csrf_refresh_token: credentials.csrf_refresh_token,
                     refresh_token_cookie: credentials.refresh_token_cookie
                 },
-                responseType: 'arraybuffer',
-                withCredentials: true
+                responseType: 'arraybuffer'
             }
         );
 
@@ -31,7 +30,6 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
             contentType: response.headers['content-type']
         };
     } catch (error) {
-        console.error('Error:', error);
         return {
             status: 404,
             error: 'Document not found'
