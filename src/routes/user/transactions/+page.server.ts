@@ -1,19 +1,16 @@
 import type { PageServerLoad } from './$types';
-import axios from 'axios';
 import {
-	API_BASE_URL,
 	API_TRANSACTION_ROOT,
 	API_TRANSACTION_ALL_TRANSACTIONS
 } from '$env/static/private';
-import { httpsAgent } from '$lib/server/http-config';
 import credentialsManager from '$lib/utils/function/credentials-manager';
+import axiosInstance from '$lib/utils/function/validators/axios-config';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const cookieObject = credentialsManager(cookies);
 	try {
-		console.log(`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_ALL_TRANSACTIONS}`);
-		const response = await axios.get(
-			`${API_BASE_URL}${API_TRANSACTION_ROOT}${API_TRANSACTION_ALL_TRANSACTIONS}`,
+		const response = await axiosInstance.get(
+			`${API_TRANSACTION_ROOT}${API_TRANSACTION_ALL_TRANSACTIONS}`,
 			{
 				headers: {
 					Authorization: cookieObject.Authorization,
@@ -22,8 +19,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
 					refresh_token_cookie: cookieObject.refresh_token_cookie
 				},
 				withCredentials: true,
-				withXSRFToken: true,
-				httpsAgent
 			}
 		);
 

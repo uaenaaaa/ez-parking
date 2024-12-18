@@ -26,6 +26,7 @@
 			}[];
 		};
 	};
+	console.log(transactions);
 	let searchTerm = $state('');
 	let sortBy = $state('slot_code');
 	let sortDirection = $state<'asc' | 'desc'>('asc');
