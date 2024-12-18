@@ -43,15 +43,10 @@
     ) => {
         const pricingPlan = validPricingPlans.find((plan) => plan.rate_type === pricingType);
         if (!pricingPlan) return 0;
-
         let rate = parseFloat(pricingPlan.rate);
-
-        // Apply slot multiplier
         rate *= transactionCheckoutData.slot_info.slot_multiplier;
-
-        // Apply premium rate if applicable (e.g. 20% increase)
         if (transactionCheckoutData.slot_info.is_premium) {
-            rate *= 1.2; // 20% premium increase
+            rate *= 1.2;
         }
 
         if (newPricingType === 'hourly') {
@@ -74,7 +69,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 p-4">
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto max-w-7xl">
         <div class="col-span-2 mb-6">
             <a href="/user/dashboard" class="text-blue-500"> &larr; Back to Dashboard</a>
         </div>

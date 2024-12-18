@@ -69,7 +69,6 @@ export const actions: Actions = {
                     withCredentials: true
                 }
             );
-            console.log(response.data.errors);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('Failed to submit transaction:', error);
