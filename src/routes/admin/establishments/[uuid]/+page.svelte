@@ -42,7 +42,6 @@
 
 <div class="min-h-screen bg-gray-50 p-4">
     <div class="mx-auto max-w-7xl">
-        <!-- Header -->
         <div class="mb-6">
             <h1 class="text-2xl font-bold text-gray-900">
                 {establishment.parking_establishment.name}
@@ -407,7 +406,6 @@
                         </select>
                     </div>
 
-                    <!-- Slot Status -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="slot_status">
                             Status <span class="text-red-500">*</span>
@@ -436,7 +434,6 @@
                     <label for="is_active" class="ml-2 text-sm text-gray-700">Active Slot</label>
                 </div>
 
-                <!-- Submit Buttons -->
                 <div class="flex justify-end space-x-4">
                     <button
                         type="button"

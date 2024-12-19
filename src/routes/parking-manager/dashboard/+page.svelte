@@ -21,19 +21,13 @@
             title: 'Manage Parking',
             items: [
                 {
-                    name: 'Add Slot',
-                    href: '/parking-manager/new/slot',
-                    icon: 'plus',
-                    description: 'Add new parking slots'
-                },
-                {
                     name: 'Manage Slots',
-                    href: '/parking-manager/manage-parking-lot',
+                    href: '/parking-manager/slots',
                     icon: 'parking',
                     description: 'Update parking details and settings'
                 },
                 {
-                    name: 'Set Schedule',
+                    name: 'Manage Schedules',
                     href: '/parking-manager/schedule',
                     icon: 'clock',
                     description: 'Manage operating hours'
@@ -82,7 +76,6 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
-    <!-- Navigation -->
     <nav class="fixed top-0 z-50 w-full bg-white shadow-sm">
         <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
             <div class="flex items-center">
@@ -95,7 +88,6 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="mx-auto max-w-7xl px-4 pb-8 pt-24">
         <h1 class="mb-8 text-2xl font-bold text-gray-900">Parking Manager Dashboard</h1>
 
