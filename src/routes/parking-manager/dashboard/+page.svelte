@@ -1,268 +1,144 @@
-<script>
-    import { page } from '$app/stores';
-
-    let sidebarOpen = $state(false);
-
-    function toggleSidebar() {
-        sidebarOpen = !sidebarOpen;
-    }
+<script lang="ts">
+    const actionCards = [
+        {
+            title: 'Quick Actions',
+            items: [
+                {
+                    name: 'Scan Entry QR',
+                    href: '/parking-manager/entry',
+                    icon: 'qr-code-in',
+                    description: 'Scan QR code for vehicle entry'
+                },
+                {
+                    name: 'Scan Exit QR',
+                    href: '/parking-manager/exit',
+                    icon: 'qr-code-out',
+                    description: 'Scan QR code for vehicle exit'
+                }
+            ]
+        },
+        {
+            title: 'Manage Parking',
+            items: [
+                {
+                    name: 'Add Slot',
+                    href: '/parking-manager/new/slot',
+                    icon: 'plus',
+                    description: 'Add new parking slots'
+                },
+                {
+                    name: 'Manage Slots',
+                    href: '/parking-manager/manage-parking-lot',
+                    icon: 'parking',
+                    description: 'Update parking details and settings'
+                },
+                {
+                    name: 'Set Schedule',
+                    href: '/parking-manager/schedule',
+                    icon: 'clock',
+                    description: 'Manage operating hours'
+                }
+            ]
+        },
+        {
+            title: 'Staff Management',
+            items: [
+                {
+                    name: 'Manage Cashiers',
+                    href: '/parking-manager/manage-cashiers',
+                    icon: 'users',
+                    description: 'Add or remove cashier accounts'
+                }
+            ]
+        },
+        {
+            title: 'Reports & Analytics',
+            items: [
+                {
+                    name: 'Transactions',
+                    href: '/parking-manager/transactions',
+                    icon: 'receipt',
+                    description: 'View transaction history'
+                },
+                {
+                    name: 'Reports',
+                    href: '/parking-manager/reports',
+                    icon: 'chart',
+                    description: 'View analytics and reports'
+                },
+                {
+                    name: 'Account',
+                    href: '/parking-manager/account-settings',
+                    icon: 'settings',
+                    description: 'Manage account settings'
+                }
+            ]
+        }
+    ];
 </script>
 
 <svelte:head>
-    <title>Owner Dashboard</title>
+    <title>Parking Manager Dashboard</title>
 </svelte:head>
 
-<main>
-    <div class="navbar">
-        <div class="logo">
-            <img src="./../logo.png" alt="NearbySpot Logo" />
+<div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed top-0 z-50 w-full bg-white shadow-sm">
+        <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
+            <div class="flex items-center">
+                <img src="/logo.png" alt="EZ Parking" class="h-16 w-auto" />
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="/auth/logout" class="text-sm text-gray-600 hover:text-gray-900" data-sveltekit-preload-data="tap"
+				>Logout</a>
+            </div>
         </div>
-    </div>
+    </nav>
 
-    <button class="menu-btn" onclick={toggleSidebar}>☰</button>
+    <!-- Main Content -->
+    <main class="mx-auto max-w-7xl px-4 pb-8 pt-24">
+        <h1 class="mb-8 text-2xl font-bold text-gray-900">Parking Manager Dashboard</h1>
 
-    <div class="sidebar" class:open={sidebarOpen}>
-        <h2>Owner Dashboard</h2>
-        <ul>
-            <li><a href="/parking-manager/manage-parking-lot">Manage Parking</a></li>
-            <li><a href="/parking-manager/schedule">Set Schedule</a></li>
-            <li><a href="M/parking-manager/manage-cashiers">Manage Cashiers</a></li>
-            <li><a href="/parking-manager/reports">View Reports</a></li>
-            <li><a href="/auth/logout">Log Out</a></li>
-        </ul>
-    </div>
-	<div class="main-content" id="main-content" class:compressed={sidebarOpen}>
-		<h1>Welcome, Parking Owner</h1>
-
-		<div class="dashboard-panels">
-			<div class="panel">
-				<h3>
-					Scan Entry QR Code
-				</h3>
-				<p>
-					Scan the QR code to allow entry to the parking lot.
-				</p>
-				<a href="/parking-manager/entry/" class="btn">
-					Scan QR Code
-				</a>
-			</div>
-
-			<div class="panel">
-				<h3>
-					Scan Exit QR Code
-				</h3>
-				<p>
-					Scan the QR code to allow exit from the parking lot.
-				</p>
-				<a href="/parking-manager/exit/" class="btn">
-					Scan QR Code
-				</a>
-			</div>
-
-			<div class="panel">
-				<h3>Manage Parking Lot</h3>
-				<p>Update parking details, capacity, pricing, and more.</p>
-				<a href="/parking-manager/manage-parking-lot" class="btn">Manage Parking Lot</a>
-			</div>
-
-			<div class="panel">
-				<h3>Set Schedule</h3>
-				<p>Adjust open/close hours and update availability.</p>
-				<a href="/parking-manager/schedule" class="btn">Set Schedule</a>
-			</div>
-
-			<div class="panel">
-				<h3>Manage Cashiers</h3>
-				<p>Assign or remove cashiers for your parking lot.</p>
-				<a href="/parking-manager/manage-cashiers" class="btn">Manage Cashiers</a>
-			</div>
-
-			<div class="panel">
-				<h3>Add Slot</h3>
-				<p>
-					Add a new parking slot to your parking lot.
-				</p>
-				<a href="/parking-manager/new/slot" class="btn">
-					Add Slot
-				</a>
-			</div>
-
-			<div class="panel">
-				<h3>View Transactions</h3>
-				<p>
-					View all transactions made in your parking lot.
-				</p>
-				<a href="/parking-manager/transactions" class="btn">
-					View Transactions
-				</a>
-			</div>
-
-			<div class="panel">
-				<h3>View Reports</h3>
-				<p>Check occupancy rates, revenue, and more analytics.</p>
-				<a href="/parking-manager/reports" class="btn">View Reports</a>
-			</div>
-
-			<div class="panel">
-				<h3>Account Settings</h3>
-				<p>Update your account information and preferences.</p>
-				<a href="/parking-manager/account-settings" class="btn">Account Settings</a>
-			</div>
-		</div>
-	</div>
-</main>
-
-<style>
-	main {
-		margin: 0;
-		color: #333;
-		background: linear-gradient(135deg, #f0f0f5, #7c748f);
-		display: flex;
-		flex-direction: column;
-	}
-
-	.navbar {
-		position: fixed;
-		top: 0;
-		width: 100%;
-		height: 80px;
-		background: rgba(217, 217, 217, 0.9);
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0 20px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		z-index: 100;
-	}
-
-	.navbar .logo {
-		display: flex;
-		align-items: center;
-	}
-
-	.navbar .logo img {
-		height: 110px;
-	}
-
-	.sidebar {
-		width: 250px;
-		background-color: #333;
-		color: white;
-		position: fixed;
-		top: 80px;
-		bottom: 0;
-		padding: 20px 10px;
-		transform: translateX(-100%);
-		transition: transform 0.3s ease;
-		z-index: 1000;
-	}
-
-	.sidebar.open {
-		transform: translateX(0);
-	}
-
-	.sidebar h2 {
-		text-align: center;
-		font-size: 24px;
-		color: #8f86a8;
-		padding-bottom: 20px;
-		border-bottom: 1px solid #444;
-		padding-top: 20px;
-		padding-left: 20px;
-	}
-
-	.sidebar ul {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.sidebar ul li {
-		margin: 20px 0;
-	}
-
-	.sidebar ul li a {
-		color: #ccc;
-		text-decoration: none;
-		font-size: 18px;
-		padding: 10px;
-		display: block;
-		border-radius: 8px;
-		transition: 0.3s;
-	}
-
-	.sidebar ul li a:hover {
-		background-color: #555;
-		color: #fff;
-	}
-
-	/* Hamburger Menu Button */
-	.menu-btn {
-		background-color: #8f86a8;
-		border: none;
-		color: white;
-		font-size: 24px;
-		padding: 10px;
-		border-radius: 5px;
-		cursor: pointer;
-		position: fixed;
-		top: 90px; /* Positioned below the navbar */
-		left: 20px;
-		z-index: 1001;
-	}
-
-	/* Main content area */
-	.main-content {
-		margin-left: 60px; /* Shifted slightly to the right */
-		padding: 50px 20px 20px; /* Reduced padding for compact view */
-		width: 85%; /* Reduced width */
-		transition: margin-left 0.3s ease;
-		max-width: 1200px; /* Add max-width for larger screens */
-		margin-top: 30px; /* Ensure content stays below the navbar */
-	}
-
-	.main-content.compressed {
-		margin-left: 250px; /* Shifted to the right when sidebar is open */
-	}
-
-	/* Dashboard panels */
-	.dashboard-panels {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr); /* 2 panels per row for compact view */
-		gap: 15px; /* Reduced gap between panels */
-		grid-template-rows: auto;
-	}
-
-	.panel {
-		background-color: white;
-		padding: 15px;
-		border-radius: 8px;
-		box-shadow: 0 4px 8px #7c748f;
-	}
-
-	.panel h3 {
-		margin-top: 0;
-		font-size: 18px;
-		color: #8f86a8;
-	}
-
-	.panel p {
-		margin: 10px 0;
-		color: #666;
-	}
-
-	.btn {
-		background-color: #8f86a8;
-		color: white;
-		border: none;
-		padding: 8px 16px;
-		border-radius: 5px;
-		cursor: pointer;
-		transition: 0.3s;
-		font-size: 12px; /* Smaller font size for buttons */
-	}
-
-	.btn:hover {
-		background-color: #6d5f90;
-	}
-</style>
+        {#each actionCards as section}
+            <div class="mb-8">
+                <h2 class="mb-4 text-lg font-semibold text-gray-700">{section.title}</h2>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {#each section.items as item}
+                        <a
+                            href={item.href}
+                            class="group rounded-lg bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                        >
+                            <div class="flex items-start space-x-4">
+                                <div class="rounded-lg bg-indigo-100 p-3 text-indigo-600">
+                                    <svg
+                                        class="h-6 w-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 4v16m8-8H4"
+                                        />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3
+                                        class="font-medium text-gray-900 group-hover:text-indigo-600"
+                                    >
+                                        {item.name}
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        {item.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    {/each}
+                </div>
+            </div>
+        {/each}
+    </main>
+</div>

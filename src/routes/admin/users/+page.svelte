@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { UserMinimal } from '$lib/models/user';
+    import type { User } from '$lib/models/user';
     import type { PageData } from './$types';
     import BanModalComponent from './BanModalComponent.svelte';
 
     let { data }: { data: PageData } = $props();
-    let users = $state(data.response?.users.data) as unknown as UserMinimal[];
+    let users = $state(data.response?.users.data) as unknown as User[];
     let banForm = {
         ban_reason: '',
         ban_start: new Date().toISOString().slice(0, 16),
@@ -48,11 +48,11 @@
                     type="search"
                     id="search"
                     onkeypress={() => {
-                        users = data.response?.users.data.filter((user: UserMinimal) => {
+                        users = data.response?.users.data.filter((user: User) => {
                             return user.first_name
                                 ? user.first_name.toLowerCase().includes(searchQuery.toLowerCase())
                                 : false;
-                        }) as unknown as UserMinimal[];
+                        }) as unknown as User[];
                     }}
                     bind:value={searchQuery}
                     placeholder="Search users..."
@@ -63,10 +63,10 @@
                 <select
                     bind:value={roleFilter}
                     onchange={() => {
-                        users = data.response?.users.data.filter((user: UserMinimal) => {
+                        users = data.response?.users.data.filter((user: User) => {
                             if (roleFilter === 'all') return true;
                             return user.role === roleFilter;
-                        }) as unknown as UserMinimal[];
+                        }) as unknown as User[];
                     }}
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
@@ -79,10 +79,10 @@
             <div>
                 <select
                     onchange={() => {
-                        users = data.response?.users.data.filter((user: UserMinimal) => {
+                        users = data.response?.users.data.filter((user: User) => {
                             if (verificationFilter === 'all') return true;
                             return user.is_verified === (verificationFilter === 'verified');
-                        }) as unknown as UserMinimal[];
+                        }) as unknown as User[];
                     }}
                     bind:value={verificationFilter}
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

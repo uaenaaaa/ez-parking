@@ -1,83 +1,88 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { fade } from 'svelte/transition';
-	import isEmailValid from '$lib/utils/function/email-validation.js';
-	import { goto } from '$app/navigation';
+    import { enhance } from '$app/forms';
+    import { fade } from 'svelte/transition';
+    import isEmailValid from '$lib/utils/function/email-validation.js';
+    import { goto } from '$app/navigation';
 
-	let emailInput: HTMLInputElement;
-	let continueButton: HTMLButtonElement;
-	let resendButton: HTMLButtonElement;
-	let otpInputs: HTMLInputElement[] = [];
-	let otpValues = $state(Array(6).fill(''));
-	let timerText: HTMLDivElement;
-	let errorMessage: HTMLDivElement;
-	let errorLoginMessage: HTMLDivElement;
-	let otpForm: HTMLFormElement;
-	let showOtpForm = $state(false);
-	let rememberMe = $state(false);
-	let nextRoute = $state('');
+    let emailInput: HTMLInputElement;
+    let continueButton: HTMLButtonElement;
+    let resendButton: HTMLButtonElement;
+    let otpInputs: HTMLInputElement[] = [];
+    let otpValues = $state(Array(6).fill(''));
+    let timerText: HTMLDivElement;
+    let errorMessage: HTMLDivElement;
+    let errorLoginMessage: HTMLDivElement;
+    let otpForm: HTMLFormElement;
+    let showOtpForm = $state(false);
+    let rememberMe = $state(false);
+    let nextRoute = $state('');
 
-	let email = $state('');
+    let email = $state('');
 
-	let loggingIn = $state(false);
-	let timer = $state(300);
+    let loggingIn = $state(false);
+    let timer = $state(300);
 
-	$effect(() => {
-		const urlParams = new URLSearchParams(window.location.search);
-		nextRoute = urlParams.get('next') || '';
-		emailInput.focus();
-	});
+    $effect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        nextRoute = urlParams.get('next') || '';
+        emailInput.focus();
+    });
 
-	function handleKeydown(index: number, event: KeyboardEvent) {
-		if (event.key === 'Backspace' && !otpValues[index] && index > 0) {
-			otpInputs[index - 1].focus();
-		}
-	}
+    function handleKeydown(index: number, event: KeyboardEvent) {
+        if (event.key === 'Backspace' && !otpValues[index] && index > 0) {
+            otpInputs[index - 1].focus();
+        }
+    }
 
-	function startTimer() {
-		timer = 300;
-		const interval = setInterval(() => {
-			if (timer > 0) {
-				timer--;
-				if (timerText) timerText.textContent = `Get new code in ${timer} seconds`;
-			} else {
-				clearInterval(interval);
-				if (timerText) timerText.textContent = '';
-				if (resendButton) resendButton.disabled = false;
-			}
-		}, 1000);
-	}
+    function startTimer() {
+        timer = 300;
+        const interval = setInterval(() => {
+            if (timer > 0) {
+                timer--;
+                if (timerText) timerText.textContent = `Get new code in ${timer} seconds`;
+            } else {
+                clearInterval(interval);
+                if (timerText) timerText.textContent = '';
+                if (resendButton) resendButton.disabled = false;
+            }
+        }, 1000);
+    }
 
-	async function handleOtpInput(index: number, event: Event) {
-		const input = event.target as HTMLInputElement;
-		const value = input.value.replace(/\D/g, '');
+    async function handleOtpInput(index: number, event: Event) {
+        const input = event.target as HTMLInputElement;
+        const value = input.value.replace(/\D/g, '');
 
-		otpValues[index] = value;
-		input.value = value;
+        otpValues[index] = value;
+        input.value = value;
 
-		if (value && index < otpInputs.length - 1) {
-			otpInputs[index + 1].focus();
-		}
+        if (value && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+        }
 
-		const allFilled = otpValues.every((v) => v !== '');
-		if (allFilled) {
-			otpForm.requestSubmit();
-		}
-	}
+        const allFilled = otpValues.every((v) => v !== '');
+        if (allFilled) {
+            otpForm.requestSubmit();
+        }
+    }
 </script>
 
 <svelte:head>
-	<title>User Login | EZ Parking</title>
+    <title>User Login | EZ Parking</title>
 </svelte:head>
 
 <main class="min-h-screen bg-gray-50">
-    <nav class="fixed top-0 left-0 right-0 z-50 flex h-20 items-center justify-between bg-white px-6 shadow-sm">
+    <nav
+        class="fixed left-0 right-0 top-0 z-50 flex h-20 items-center justify-between bg-white px-6 shadow-sm"
+    >
         <div class="flex items-center">
             <a href="/" class="flex items-center">
                 <img src="./../../logo.png" alt="EZ Parking" class="h-16 w-auto" />
             </a>
         </div>
-        <a href="/auth/user/sign-up" class="text-sm font-semibold text-gray-600 hover:text-indigo-600">
+        <a
+            href="/auth/user/sign-up"
+            class="text-sm font-semibold text-gray-600 hover:text-indigo-600"
+        >
             Create Account
             <span aria-hidden="true" class="ml-1">→</span>
         </a>
@@ -103,6 +108,7 @@
                         loggingIn = true;
                         localStorage.setItem('rememberMe', rememberMe.toString());
                         return async ({ result }) => {
+                            loggingIn = false;
                             if (result.type === 'success') {
                                 showOtpForm = true;
                                 startTimer();
@@ -111,7 +117,6 @@
                                     alert(result.data.message as string);
                                 }
                             }
-                            loggingIn = false;
                         };
                     }}
                 >
@@ -121,7 +126,7 @@
                                 type="email"
                                 name="email"
                                 required
-                                class="relative block w-full rounded-md border-0 py-3 px-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                                class="relative block w-full rounded-md border-0 px-4 py-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
                                 placeholder="Email address"
                                 onkeyup={() => isEmailValid(email)}
                                 bind:this={emailInput}
@@ -145,13 +150,34 @@
 
                     <button
                         type="submit"
-                        class="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        class="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-3 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300"
                         disabled={!isEmailValid(email) || loggingIn}
                     >
-                        {loggingIn ? 'Please wait...' : 'Continue'}
+                        {#if loggingIn}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    fill="currentColor"
+                                    d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+                                >
+                                    <animateTransform
+                                        attributeName="transform"
+                                        dur="1.5"
+                                        repeatCount="indefinite"
+                                        type="rotate"
+                                        values="0 12 12;360 12 12"
+                                    />
+                                </path>
+                            </svg>
+                        {:else}
+                            Continue
+                        {/if}
                     </button>
                 </form>
-                <div bind:this={errorLoginMessage} />
             </div>
         {:else}
             <div class="w-full max-w-md space-y-8" transition:fade>
@@ -160,7 +186,9 @@
                         Verify your email
                     </h2>
                     <p class="mt-2 text-center text-sm text-gray-600">
-                        Enter the 6-digit code sent to <span class="font-medium text-indigo-600">{email}</span>
+                        Enter the 6-digit code sent to <span class="font-medium text-indigo-600"
+                            >{email}</span
+                        >
                     </p>
                 </div>
 
@@ -174,15 +202,16 @@
                             if (result.type === 'success') {
                                 const role = result.data!.role;
                                 if (role === 'admin') goto('/admin/dashboard');
-                                else if (role === 'parking_manager') goto('/parking-manager/dashboard');
+                                else if (role === 'parking_manager')
+                                    goto('/parking-manager/dashboard');
                                 else if (role === 'user') goto(nextRoute || '/user/dashboard');
-                             } else if (result.type == 'failure') {
+                            } else if (result.type == 'failure') {
                                 if (result.data) {
                                     alert(result.data.message as string);
                                 }
-                             } else if (result.type === 'error') {
+                            } else if (result.type === 'error') {
                                 errorMessage.textContent = result.error;
-                                alert("Invalid OTP. Please try again.");
+                                alert('Invalid OTP. Please try again.');
                             }
                         };
                     }}
