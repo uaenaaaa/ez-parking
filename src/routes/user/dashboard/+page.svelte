@@ -1,10 +1,4 @@
 <script lang="ts">
-    import type { PageData } from './$types';
-    import { fade } from 'svelte/transition';
-    import { goto } from '$app/navigation';
-
-    let { data }: { data: PageData } = $props();
-
     const userActions = [
         {
             title: 'Book Parking',
@@ -48,6 +42,7 @@
             {#each userActions as action}
                 <a
                     href={action.href}
+                    data-sveltekit-preload-data={(action.href === '/auth/logout' ? 'tap' : 'hover')}
                     class="group relative rounded-lg bg-white p-6 shadow-sm transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                     <div>

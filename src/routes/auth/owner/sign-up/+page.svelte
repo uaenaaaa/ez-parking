@@ -109,7 +109,7 @@
                 </a>
             </div>
             <div class="flex lg:flex-1 lg:justify-end">
-                <a href="/auth/owner/login" class="text-sm font-semibold leading-6 text-gray-900">
+                <a href="/auth/login" class="text-sm font-semibold leading-6 text-gray-900">
                     Login Instead <span aria-hidden="true">&rarr;</span>
                 </a>
             </div>

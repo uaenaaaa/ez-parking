@@ -353,15 +353,16 @@
     <div class="mt-6 flex justify-end md:col-span-2">
         <button
             type="button"
-            class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white focus:ring-red-500 focus:ring-offset-2 {transactionDetails
-                .transaction_data.status === 'cancelled'
-                ? 'cursor-not-allowed  bg-red-200'
-                : 'cursor-pointer bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2'}"
+            disabled={transactionDetails.transaction_data.status === 'cancelled'}
+            class="rounded-md px-4 py-2 text-sm font-medium text-white focus:ring-offset-2 {transactionDetails.transaction_data.status === 'cancelled'
+                ? 'cursor-not-allowed  bg-red-200' : 'cursor-pointer bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2'}"
             onclick={transactionDetails.transaction_data.status === 'cancelled'
                 ? undefined
                 : () => (isCancelModalOpen = true)}
         >
-            Cancel Transaction
+            {transactionDetails.transaction_data.status === 'cancelled'
+                ? 'Transaction Cancelled'
+                : 'Cancel Transaction'}
         </button>
     </div>
 
