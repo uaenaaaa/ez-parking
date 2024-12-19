@@ -15,28 +15,28 @@
 			scanError = 'Failed to access camera but you can still upload a QR code image';
 		});
 		scanner = new Html5QrcodeScanner(
-			'qr-reader',
-			{
-				fps: 10,
-				qrbox: { width: 250, height: 250 },
-				aspectRatio: 1.0,
+            'qr-reader',
+            {
+                fps: 24,
+                qrbox: { width: 500, height: 500 },
+                aspectRatio: 1.0,
                 formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
                 showZoomSliderIfSupported: true,
                 rememberLastUsedCamera: true,
+                disableFlip: true,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
+            },
+            true
+        );
 
-				experimentalFeatures: {
-					useBarCodeDetectorIfSupported: true
-				}
-			},
-			false
-		);
+        scanner.render(onScanSuccess, onScanFailure);
+        fileQRCode = new Html5Qrcode('qr-file-reader');
 
-		scanner.render(onScanSuccess, onScanFailure);
-		fileQRCode = new Html5Qrcode('qr-file-reader');
-
-		return () => {
-			scanner?.clear();
-		};
+        return () => {
+            scanner?.clear();
+        };
 	});
 
 	function onScanSuccess(decodedText: string) {
